@@ -1,0 +1,27 @@
+[package]
+name = "scylla_pg_monitor"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "db_migrate"
+path = "src/bin/db_migrate.rs"
+
+[dependencies]
+
+tokio="1.20"
+chrono = "0.4"
+dotenv = "0.15"
+config = "0.13"
+serde = "1.0"
+
+
+# db migrations
+tokio-postgres = { version = "0.7", features = ["with-serde_json-1", "with-uuid-1"] }
+refinery = {version="0.8", features=["tokio-postgres"]}
+
+# crate dependencies
+scylla_models = { path = "../scylla_models" }
+scylla_pg_lib = { path = "../scylla_pg_lib" }

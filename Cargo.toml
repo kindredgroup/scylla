@@ -1,0 +1,8 @@
+[workspace]
+members = [
+  "scylla_models",
+  "scylla_operations",
+  "scylla_pg_lib",
+  "scylla_pg_monitor",
+  "scylla_pg_js"
+]
