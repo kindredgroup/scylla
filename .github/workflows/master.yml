@@ -21,14 +21,23 @@ jobs:
           node-version: 16
           check-latest: true
       - name: Setting up Database
-        run: docker-compose up
+        run: docker-compose up -d
 
       - name: Running Migrations 
         run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
 
+      - name: cargo build 
+        run: cargo build
+      
+      - name: npm install
+        run: cd scylla_pg_js && npm install
+
+      - name: napi build
+        run: cd scylla_pg_js && npm run build
+
       - name: component test
         run: cargo test -- --include-ignored   
-        
+
       - run: cargo test --examples
       - run: cargo doc --no-deps
       # - run: bin/clippy-pedantic.sh
