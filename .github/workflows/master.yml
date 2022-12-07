@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-12
+    runs-on: ubuntu-latest
     environment: publish
     env:
       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
