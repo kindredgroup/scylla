@@ -66,10 +66,10 @@ fn prepare_insert_task(task: &Task) -> serde_json::Value {
 fn handle_insert_return(tasks: Vec<Task>, original_task: &Task) -> Result<Task, PgAdapterError> {
   if tasks.is_empty() {
     return Err(PgAdapterError::DuplicateTask(original_task.rn.to_owned()));
-  } else if tasks.len() == 1 {
+  } else {
     return Ok(tasks[0].clone())
   }
-  Err(PgAdapterError::DuplicateTask(original_task.rn.to_owned()))
+// Returning 1st item in case more than 1 is returned from insert query. 
 }
 
 struct UpdateParams {

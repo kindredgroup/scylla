@@ -15,7 +15,20 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-      - run: cargo test -- --include-ignored
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          check-latest: true
+      - name: Setting up Database
+        run: docker-compose up
+
+      - name: Running Migrations 
+        run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
+
+      - name: component test
+        run: cargo test -- --include-ignored   
+        
       - run: cargo test --examples
       - run: cargo doc --no-deps
       # - run: bin/clippy-pedantic.sh
