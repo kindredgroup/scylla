@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-12
     environment: publish
     env:
       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -35,25 +35,30 @@ jobs:
       - name: napi build
         run: cd scylla_pg_js && npm run build
 
-      - name: component test
-        run: cargo test -- --include-ignored   
+      # - name: component test
+      #   run: cargo test -- --include-ignored   
 
       - run: cargo test --examples
       - run: cargo doc --no-deps
+
+      - run: rustup component add llvm-tools-preview
+      - run: curl -L https://github.com/mozilla/grcov/releases/latest/download/grcov-x86_64-unknown-linux-gnu.tar.bz2 | tar jxf -
+      - run: PATH=$PATH:$(pwd) bin/coverage-report.sh
+      - run: bash <(curl -s https://codecov.io/bash) -f lcov.info
       # - run: bin/clippy-pedantic.sh
       # - run: >
       #     if [ $(bin/is-release.sh) = "1" ]; then 
       #         cargo install cargo-get
       #         bin/publish-all.sh
       #     fi
-  coverage:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: nightly
-      - run: rustup component add llvm-tools-preview
-      - run: curl -L https://github.com/mozilla/grcov/releases/latest/download/grcov-x86_64-unknown-linux-gnu.tar.bz2 | tar jxf -
-      - run: PATH=$PATH:$(pwd) bin/coverage-report.sh
-      - run: bash <(curl -s https://codecov.io/bash) -f lcov.info
+  # coverage:
+  #   runs-on: macos-12
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: dtolnay/rust-toolchain@stable
+  #       with:
+  #         toolchain: nightly
+  #     - run: rustup component add llvm-tools-preview
+  #     - run: curl -L https://github.com/mozilla/grcov/releases/latest/download/grcov-x86_64-unknown-linux-gnu.tar.bz2 | tar jxf -
+  #     - run: PATH=$PATH:$(pwd) bin/coverage-report.sh
+  #     - run: bash <(curl -s https://codecov.io/bash) -f lcov.info

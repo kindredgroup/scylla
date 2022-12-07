@@ -36,7 +36,7 @@ grcov ccov.zip -s . --llvm  --ignore-not-existing --ignore "/*" --excl-start "\\
 rm ccov.zip
 
 # Re-run tests with JSON output
-cargo +nightly test --tests -- -Z unstable-options --format json --report-time > coverage/test-report.json
+cargo +nightly test --tests --  --include-ignored -Z unstable-options --format json --report-time > coverage/test-report.json
 
 if [ "$1" == "--open" ]; then
   index="file://$(pwd)/${base_dir}/../coverage/index.html"
