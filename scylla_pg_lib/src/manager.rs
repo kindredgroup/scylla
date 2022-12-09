@@ -4,6 +4,8 @@ use tokio_postgres::NoTls;
 use crate::adapter::PgAdapter;
 use crate::error::PgAdapterError;
 use scylla_operations::task::ScyllaOperations;
+use scylla_pg_core::connection::get_pool;
+use scylla_pg_core::config::PGConfig;
 
 pub struct DbConfig {
   pub host: String,
@@ -17,22 +19,9 @@ pub struct PgManager {
 }
 
 impl PgManager {
-  pub fn from_config(config: DbConfig) -> Result<Self, PgAdapterError> {
-    let mut pg_config = tokio_postgres::Config::new();
-    pg_config
-      .host(config.host.as_str())
-      .port(config.port)
-      .user(config.user.as_str())
-      .password(config.password.as_str())
-      .dbname(config.db_name.as_str());
-    let mgr_config = ManagerConfig {
-      recycling_method: RecyclingMethod::Fast,
-    };
-    let mgr = Manager::from_config(pg_config, NoTls, mgr_config);
-    match Pool::builder(mgr).max_size(16).build() {
-      Ok(pool) => Ok(Self { pg_adapter: Box::new(PgAdapter {pool} )}),
-      Err(e) => Err(PgAdapterError::PoolCreationError(e.to_string())),
-    }
+  pub fn from_config(config: PGConfig) -> Result<Self, PgAdapterError> {
+    let pool = get_pool(config)?;
+    Ok(Self { pg_adapter: Box::new(PgAdapter {pool} )})
   }
   pub async fn fetch_task(&self, rn: String) -> Result<Task, PgAdapterError> {
     let task = self.pg_adapter.get_task(rn).await?;

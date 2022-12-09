@@ -18,7 +18,3 @@ deadpool-postgres = { version = "0.10", features = ["serde"] }
 
 # db migrations
 refinery = {version="0.8", features=["tokio-postgres"]}
-
-# crate dependencies
-scylla_models = { path = "../scylla_models" }
-scylla_pg_lib = { path = "../scylla_pg_lib" }

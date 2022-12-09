@@ -19,9 +19,7 @@ cargo +nightly build
 
 echo "Testing $app_name"
 export LLVM_PROFILE_FILE="${app_name}-%p-%m.profraw"
-make withenv RECIPE=truncate
-
-cargo +nightly test --workspace --exclude scylla_pg_js --  --include-ignored
+make withenv RECIPE=test.nightly
 
 rm ccov.zip 2> /dev/null || true
 zip -0 ccov.zip `find . \( -name "${app_name}*.gc*" \) -print`
@@ -37,11 +35,8 @@ grcov ccov.zip -s . --llvm  --ignore-not-existing --ignore "/*" --excl-start "\\
 
 # Clean up
 rm ccov.zip
-# truncate table before running test again
-# Re-run tests with JSON output
-make withenv RECIPE=truncate
 
-cargo +nightly test --workspace --exclude scylla_pg_js -- -Z unstable-options --include-ignored  --format json --report-time > coverage/test-report.json
+make withenv RECIPE=test.json
 
 if [ "$1" == "--open" ]; then
   index="file://$(pwd)/${base_dir}/../coverage/index.html"

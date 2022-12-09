@@ -28,11 +28,11 @@ export interface JsTaskError {
   description: string
 }
 export interface JsDbConfig {
-  host: string
-  port: number
-  user: string
-  password: string
-  dbName: string
+  pgHost: string
+  pgPort: number
+  pgUser: string
+  pgPassword: string
+  pgDatabase: string
 }
 export class ScyllaManager {
   static initPgConfig(jsDbConfig: JsDbConfig): Promise<ScyllaManager>

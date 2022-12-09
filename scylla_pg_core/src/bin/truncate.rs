@@ -30,8 +30,7 @@ async fn run_db_operation() {
     }
 }
 
-
-async fn truncate_task_table(client: &Client) -> Result<(), tokio_postgres::Error> {
+pub async fn truncate_task_table(client: &Client) -> Result<(), tokio_postgres::Error> {
   let truncate_table_ddl = format!("TRUNCATE task");
   client.execute(&truncate_table_ddl, &[]).await?;
   Ok(())

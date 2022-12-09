@@ -48,20 +48,20 @@ install:
 build:
 	$(call pp,build rust...)
 	cargo build
-	cd pg_js && npm run build
+	cd scylla_pg_js && npm run build
 
 bundle:
 	$(call pp,bundle npm packages...)
-	cd pg_js && npm run bundle:packages -- "$VER"
+	cd scylla_pg_js && npm run bundle:packages -- "$VER"
 
 ## dev.run: 🧪 Runs rust app in watch mode
 dev.run:
 	$(call pp,run app...)
 	cargo  watch -q -c -x 'run --bin pg_monitor'
 ## run: 🧪 Runs rust app
-run:
+pg.monitor:
 	$(call pp,run app...)
-	cargo run --bin pg_monitor
+	cargo run --bin scylla_pg_monitor
 
 ## db.migrate: 🧪 Runs DB Migration
 db.migrate:
@@ -83,6 +83,18 @@ test.unit:
 	$(call pp,rust unit tests...)
 	cargo test
 
+## test.unit: 🧪 Runs unit tests
+test.component:
+	$(call pp,rust component tests...)
+	cargo test -- --include-ignored --test-threads 1
+
+test.nightly:
+	$(call pp,rust test.nightly...)
+	cargo +nightly test --workspace --exclude scylla_pg_js --  --include-ignored --test-threads 1
+
+test.json:
+	$(call pp,rust test.json...)
+	cargo +nightly test --workspace --exclude scylla_pg_js -- -Z unstable-options --include-ignored  --test-threads 1 --format json --report-time > coverage/test-report.json
 
 # PHONY ###########################################################################################
 

@@ -1,14 +1,11 @@
-use scylla_pg_lib::manager::DbConfig;
-use crate::config::Config;
-pub fn get_db_config() -> DbConfig {
-    dotenv::dotenv().ok();
+use deadpool_postgres::Pool;
+use scylla_pg_core::connection::get_client;
+use scylla_pg_core::config;
+use dotenv::dotenv;
 
-    let config = Config::from_env().unwrap();
-    DbConfig {
-      port: config.pgport,
-      db_name: config.pgdatabase,
-      password: config.pgpassword,
-      user: config.pguser,
-      host: config.pghost,
-    }
+pub async fn truncate_table() {
+    let conf = config::PGConfig::from_env().unwrap();
+    let client = get_client(conf.to_pg_config()).await.unwrap();
+    let truncate_table_ddl = format!("TRUNCATE task");
+    client.execute(&truncate_table_ddl, &[]).await.unwrap();
 }

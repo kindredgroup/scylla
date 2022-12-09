@@ -2,13 +2,13 @@
 
 use std::fmt::Display;
 
-use deadpool_postgres::PoolError;
+use deadpool_postgres::{PoolError, BuildError};
 use scylla_operations::error::ScyllaOperationsError;
 #[derive(Debug)]
 pub enum PgAdapterError {
   PoolNotValid,
   ScyllaOpsError(ScyllaOperationsError),
-  PoolCreationError(String),
+  PoolCreationError(BuildError),
   PoolError(PoolError),
   DbError(tokio_postgres::Error),
   DuplicateTask(String),
@@ -30,6 +30,11 @@ impl From<tokio_postgres::Error> for PgAdapterError {
     Self::DbError(pool_error)
   }
 }
+impl From<BuildError> for PgAdapterError {
+  fn from(build_error: BuildError) -> Self {
+    Self::PoolCreationError(build_error)
+  }
+}
 
 
 impl Display for PgAdapterError{
@@ -38,7 +43,7 @@ impl Display for PgAdapterError{
         PgAdapterError::DbError(pg) => write!(f, "{pg}"),
         PgAdapterError::DuplicateTask(rn) => write!(f, "Task already exist for {rn}"),
         PgAdapterError::NoTaskFound(rn) => write!(f, "No task found for {rn}"),
-        PgAdapterError::PoolCreationError(reason) => write!(f, "Unable to create Database pool: {reason}"),
+        PgAdapterError::PoolCreationError(build_error) => write!(f, "{build_error}"),
         PgAdapterError::PoolError(pool_error) => write!(f, "{pool_error}"),
         PgAdapterError::PoolNotValid => write!(f, "Pool instance not valid. Consider creating a new instance"),
         PgAdapterError::ScyllaOpsError(sc_ops_error) => write!(f, "{sc_ops_error}")

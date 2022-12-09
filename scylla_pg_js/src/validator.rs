@@ -1,5 +1,4 @@
 use scylla_models::TaskStatus;
-use scylla_pg_lib::error::PgAdapterError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum JSScyllaError {

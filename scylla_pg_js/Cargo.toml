@@ -33,6 +33,7 @@ env_logger = "0.9"
 # crate depencies
 scylla_models = { path = "../scylla_models" }
 scylla_pg_lib = { path = "../scylla_pg_lib" }
+scylla_pg_core = { path = "../scylla_pg_core" }
 
 [build-dependencies]
 napi-build = "2.0.1"
