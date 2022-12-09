@@ -1,4 +1,4 @@
-name: Master build
+name: master build
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
         run: cd scylla_pg_js && npm run build
 
       - name: component test
-        run: cargo test -- --include-ignored   
+        run: make withenv RECIPE=test.component
 
       - run: cargo test --examples
       - run: cargo doc --no-deps
