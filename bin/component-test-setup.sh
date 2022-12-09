@@ -1,7 +1,11 @@
 #!/bin/bash
-
+touch .env
+echo PG_HOST=127.0.0.1 >> .env
+echo PG_USER=admin >> .env
+echo PG_PASSWORD=admin >> .env
+echo PG_DATABASE=scylla >> .env
+echo PG_PORT=5432 >> .env
 # run db-migrations
-PGUSER=admin PGPASSWORD=admin PGDATABASE=scylla PGHOST=127.0.0.1 PGPORT=5432 cargo run --bin db_migrate cargo run --bin db_migrate
+make withenv RECIPE=db.migrate
 
-# Seed data or call test script
  

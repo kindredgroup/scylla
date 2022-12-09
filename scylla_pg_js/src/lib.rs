@@ -1,7 +1,5 @@
 mod models;
 mod validator;
-use napi::sys::{napi_env, napi_value};
-use napi::{NapiRaw, NapiValue};
 use napi_derive::napi;
 use scylla_models::{AddTaskModel, GetTaskModel, TaskError};
 use scylla_pg_lib::manager::{DbConfig, PgManager};
