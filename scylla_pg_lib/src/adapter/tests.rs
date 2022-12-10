@@ -34,5 +34,26 @@ fn handle_insert_return_cases() {
     // In case single item is returned from db. That will be retruned back
     assert_eq!(handle_insert_return(vec![ret_t.clone()], &original_task).unwrap(), ret_t);
     // In case more than item is returned from db. it's returning first item. Implement transactions
-    assert_eq!(handle_insert_return(vec![ret_t.clone(), ret_t1.clone()], &original_task).unwrap(), ret_t);
+    // let result = std::panic::catch_unwind(|| handle_insert_return(vec![ret_t.clone(), ret_t1.clone()], &original_task));
+    // assert!(result.is_err());
+}
+
+#[test]
+#[should_panic(expected = "Unexpected number of rows returned from insert query")]
+fn handle_insert_return_cases_panics() {
+    let original_task = Task {
+        rn: "123".to_string(),
+        ..Task::default()
+    };
+    let ret_t = Task {
+        rn: "123".to_string(),
+        status: scylla_models::TaskStatus::Running,
+        ..Task::default()
+    };
+    let ret_t1 = Task {
+        rn: "123".to_string(),
+        status: scylla_models::TaskStatus::Running,
+        ..Task::default()
+    };
+    handle_insert_return(vec![ret_t.clone(),ret_t1.clone()], &original_task).unwrap();
 }

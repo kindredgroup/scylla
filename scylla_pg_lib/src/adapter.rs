@@ -64,12 +64,11 @@ fn prepare_insert_task(task: &Task) -> serde_json::Value {
   to_value(task).unwrap()
 }
 fn handle_insert_return(tasks: Vec<Task>, original_task: &Task) -> Result<Task, PgAdapterError> {
-  if tasks.is_empty() {
-    return Err(PgAdapterError::DuplicateTask(original_task.rn.to_owned()));
-  } else {
-    return Ok(tasks[0].clone())
+  return match tasks.len() {
+    0 => Err(PgAdapterError::DuplicateTask(original_task.rn.to_owned())),
+    1 =>  Ok(tasks[0].clone()),
+    _ => panic!("Unexpected number of rows returned from insert query")
   }
-// Returning 1st item in case more than 1 is returned from insert query. 
 }
 
 struct UpdateParams {

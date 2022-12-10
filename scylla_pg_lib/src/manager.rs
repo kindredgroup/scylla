@@ -1,27 +1,22 @@
-use deadpool_postgres::{Manager, ManagerConfig, Pool, RecyclingMethod};
 use scylla_models::*;
-use tokio_postgres::NoTls;
 use crate::adapter::PgAdapter;
 use crate::error::PgAdapterError;
 use scylla_operations::task::ScyllaOperations;
 use scylla_pg_core::connection::get_pool;
 use scylla_pg_core::config::PGConfig;
 
-pub struct DbConfig {
-  pub host: String,
-  pub port: u16,
-  pub user: String,
-  pub password: String,
-  pub db_name: String,
-}
+// pub struct PgManager {
+//     pg_adapter: Box<dyn ScyllaOperations<PersistenceError = PgAdapterError> + Sync + Send>
+// }
+
 pub struct PgManager {
-    pg_adapter: Box<dyn ScyllaOperations<PersistenceError = PgAdapterError> + Sync + Send>
+  pg_adapter: PgAdapter
 }
 
 impl PgManager {
   pub fn from_config(config: PGConfig) -> Result<Self, PgAdapterError> {
     let pool = get_pool(config)?;
-    Ok(Self { pg_adapter: Box::new(PgAdapter {pool} )})
+    Ok(Self { pg_adapter: PgAdapter {pool} } )
   }
   pub async fn fetch_task(&self, rn: String) -> Result<Task, PgAdapterError> {
     let task = self.pg_adapter.get_task(rn).await?;
@@ -121,5 +116,5 @@ impl PgManager {
   }
 }
 
-#[cfg(test)]
-mod tests;
+// #[cfg(test)]
+// mod tests;

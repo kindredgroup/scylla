@@ -1,4 +1,4 @@
-// use log::info;
+//! PG Config is being used by Scylla modules to create Postgres connection
 use serde::{Deserialize, Serialize};
 
 use std::fmt::Debug;
@@ -108,5 +108,17 @@ mod tests {
     pgc.host("localhost").port(5432).user("pgadmin").password("pgpass");
     assert_eq!(config.to_without_db_config(), pgc);
   }
+  #[test]
+  fn default_case() {
 
+    let config = PGConfig::default();
+
+    assert_eq!(config,  PGConfig {
+      pg_host: "".to_owned(),
+      pg_port: 1234,
+      pg_user: "".to_owned(),
+      pg_password: "".to_owned(),
+      pg_database: "".to_owned(),
+    });
+  }
 }

@@ -11,8 +11,7 @@ use scylla_pg_lib::error::PgAdapterError;
 async fn insert_task() {
     // truncate table before use
     common::truncate_table().await;
-    let config = PGConfig::from_env().unwrap();
-    let pgm = PgManager::from_config(config).expect("Error creating PgManager Instance");
+    let pgm = common::get_pg_manager().await;
     let atm = AddTaskModel {
         rn: "add_test_1".to_string(),
         queue: "add_test".to_string(),
@@ -33,7 +32,6 @@ async fn insert_task() {
         queue: "add_test".to_string(),
         priority: 1,
         spec: serde_json::from_str("{\"a\":\"b\"}").unwrap()
-
     };
     let inserted_task_result = pgm.insert_task(atm_with_same_rn).await;
     assert_eq!(inserted_task_result.is_err(), true);
