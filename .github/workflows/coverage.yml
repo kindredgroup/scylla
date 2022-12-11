@@ -20,10 +20,10 @@ jobs:
         with:
           node-version: 16
           check-latest: true
-      - name: Setting up Database
+      - name: Setup Database
         run: docker-compose up -d
 
-      - name: Running Migrations 
+      - name: Run Migrations 
         run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
 
       # - name: cargo build 
