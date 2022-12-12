@@ -1,7 +1,5 @@
 use scylla_models::{GetTaskModel, AddTaskModel, TaskError};
 use scylla_models::TaskStatus;
-use scylla_pg_lib::manager::PgManager;
-use scylla_pg_core::config::PGConfig;
 mod common;
 
 #[tokio::test]

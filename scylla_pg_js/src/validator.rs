@@ -1,3 +1,4 @@
+// $coverage:ignore-start
 use scylla_models::TaskStatus;
 
 #[derive(Debug, thiserror::Error)]

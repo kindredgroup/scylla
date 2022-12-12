@@ -1,13 +1,12 @@
+//! Adapter to implement database operations. 
 use async_trait::async_trait;
 use deadpool_postgres::{Client, Pool};
 use scylla_models::{GetTaskModel, Task};
-use scylla_operations::task::{ScyllaOperations};
-// use postgres::Row;
-use serde_json::{from_value, to_value};
+use scylla_operations::task::{Persistence};
+use serde_json::{from_value};
 use tokio_postgres::types::ToSql;
 use crate::error::PgAdapterError;
-#[cfg(test)]
-use mockall::{automock, mock, predicate::*};
+use crate::adapter_utils::*;
 
 const INSERT_TASK_SQL: &str = "
     INSERT INTO task(data) VALUES ($1) \
@@ -36,7 +35,6 @@ pub struct PgAdapter {
 }
 
 #[async_trait]
-#[cfg_attr(test, automock)]
 pub trait DbExecute {
   async fn execute(&self, sql: &str, params: &[&(dyn ToSql + Sync)]) -> Result<Vec<Task>, PgAdapterError>;
 }
@@ -60,60 +58,8 @@ impl DbExecute for PgAdapter {
 }
 
 
-fn prepare_insert_task(task: &Task) -> serde_json::Value {
-  to_value(task).unwrap()
-}
-fn handle_insert_return(tasks: Vec<Task>, original_task: &Task) -> Result<Task, PgAdapterError> {
-  return match tasks.len() {
-    0 => Err(PgAdapterError::DuplicateTask(original_task.rn.to_owned())),
-    1 =>  Ok(tasks[0].clone()),
-    _ => panic!("Unexpected number of rows returned from insert query")
-  }
-}
-
-struct UpdateParams {
-  json_task: serde_json::Value,
-  rn: String
-}
-fn prepare_update_task(task: &Task) -> UpdateParams {
-  UpdateParams {
-    rn: task.rn.clone(),
-    json_task: to_value(task).unwrap()
-  }
-}
-fn handle_update_return(tasks: Vec<Task>, original_task: &Task) -> Result<Task, PgAdapterError> {
-  if tasks.is_empty() {
-    return Err(PgAdapterError::NoTaskFound(original_task.rn.to_owned()));
-  }
-  Ok(tasks[0].clone())
-}
-struct QueryParams {
-  status: String,
-  queue: String,
-  worker: String,
-  limit: i32
-}
-fn prepare_query_task(get_task_model: &GetTaskModel) -> QueryParams {
-  let status = get_task_model.status.clone().map_or_else(|| '%'.to_string(), |s| s.to_string().to_lowercase());
-    let queue = get_task_model.queue.clone().map_or_else(|| '%'.to_string(), |q| q);
-    let worker = get_task_model.worker.clone().map_or_else(|| '%'.to_string(), |w| w);
-    let limit = get_task_model.limit.map_or_else(|| 100, |l| l);
-  QueryParams {
-    status,
-    queue,
-    worker,
-    limit
-  }
-}
-fn handle_query_by_rn_return(tasks: Vec<Task>, rn: &String) -> Result<Task, PgAdapterError> {
-  if tasks.is_empty() {
-    return Err(PgAdapterError::NoTaskFound(rn.to_owned()));
-  }
-  Ok(tasks[0].clone())
-}
-
 #[async_trait]
-impl ScyllaOperations for PgAdapter {
+impl Persistence for PgAdapter {
 
   type PersistenceError = PgAdapterError;
 
@@ -138,5 +84,3 @@ impl ScyllaOperations for PgAdapter {
     handle_query_by_rn_return(self.execute(GET_TASK_SQL, &[&rn]).await?, &rn)
   }
 }
-#[cfg(test)]
-mod tests;

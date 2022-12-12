@@ -1,7 +1,5 @@
 mod common;
 use scylla_models::{AddTaskModel, TaskStatus};
-use scylla_pg_lib::manager::PgManager;
-use scylla_pg_core::config::PGConfig;
 use scylla_pg_lib::error::PgAdapterError;
 
 

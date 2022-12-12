@@ -1,3 +1,4 @@
+// $coverage:ignore-start
 mod models;
 mod validator;
 use napi_derive::napi;

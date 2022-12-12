@@ -1,6 +1,6 @@
 use crate::config::PGConfig;
 use deadpool_postgres::{Manager, ManagerConfig, Pool, RecyclingMethod};
-use tokio_postgres::{NoTls, Client, Connection, Config, tls::NoTlsStream};
+use tokio_postgres::{NoTls, Client, Config};
 
 pub fn get_pool(config: PGConfig) -> Result<Pool, deadpool_postgres::BuildError> {
     let mgr_config = ManagerConfig {
