@@ -90,11 +90,11 @@ test.component:
 
 test.nightly:
 	$(call pp,rust test.nightly...)
-	cargo +nightly test --workspace --exclude scylla_pg_js --  --include-ignored --test-threads 1
+	cargo +nightly test --workspace --exclude scylla_pg_js
 
 test.json:
 	$(call pp,rust test.json...)
-	cargo +nightly test --workspace --exclude scylla_pg_js -- -Z unstable-options --include-ignored  --test-threads 1 --format json --report-time > coverage/test-report.json
+	cargo +nightly test --workspace --exclude scylla_pg_js -- -Z unstable-options --format json --report-time > coverage/test-report.json
 
 # PHONY ###########################################################################################
 

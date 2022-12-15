@@ -1,3 +1,4 @@
+//! Common models used by most crates
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -54,7 +55,7 @@ impl Display for UpdateOperation {
   }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub enum TaskStatus {
   #[serde(rename = "ready")]
   Ready,
@@ -202,6 +203,17 @@ mod tests {
     assert_eq!(TaskStatus::Running.allowed_transitions(), &[TaskStatus::Completed, TaskStatus::Cancelled, TaskStatus::Aborted]);
     // display trait
     assert_eq!(format!("Task Status is {}", TaskStatus::Running), "Task Status is Running");
+
+    assert_eq!(format!("{:?}", TaskStatus::Running), "Running");
+    assert_ne!(TaskStatus::Running, TaskStatus::Ready);
+    assert_eq!(TaskStatus::Running.clone(), TaskStatus::Running);
+    assert_eq!(TaskStatus::Running == TaskStatus::Running, true);
+    assert_eq!(serde_json::to_string(&TaskStatus::Running).unwrap(), "\"running\"");
+    assert_eq!(serde_json::from_str::<TaskStatus>("\"running\"").unwrap(), TaskStatus::Running);
+    assert_eq!(serde_json::from_str::<TaskStatus>("\"ready\"").unwrap(), TaskStatus::Ready);
+    assert_eq!(serde_json::from_str::<TaskStatus>("\"aborted\"").unwrap(), TaskStatus::Aborted);
+    assert_eq!(serde_json::from_str::<TaskStatus>("\"completed\"").unwrap(), TaskStatus::Completed);
+    assert_eq!(serde_json::from_str::<TaskStatus>("\"cancelled\"").unwrap(), TaskStatus::Cancelled);
   }
 
   #[test]
@@ -214,6 +226,14 @@ mod tests {
       typ: TaskHistoryType::Assignment,
       worker: String::from("worker1")
     }), format!("TaskHistory {{ typ: Assignment, worker: \"worker1\", progress: None, time: {:?} }}", t_now));
+    assert_eq!(format!("{:?}", TaskHistoryType::Assignment), "Assignment");
+    assert_ne!(TaskHistoryType::Assignment, TaskHistoryType::Yield);
+    assert_eq!(TaskHistoryType::Assignment.clone(), TaskHistoryType::Assignment);
+    assert_eq!(TaskHistoryType::Assignment == TaskHistoryType::Assignment, true);
+    assert_eq!(serde_json::to_string(&TaskHistoryType::Assignment).unwrap(), "\"TaskAssignment\"");
+    assert_eq!(serde_json::from_str::<TaskHistoryType>("\"TaskAssignment\"").unwrap(), TaskHistoryType::Assignment);
+    assert_eq!(serde_json::from_str::<TaskHistoryType>("\"TaskTimeout\"").unwrap(), TaskHistoryType::Timeout);
+    assert_eq!(serde_json::from_str::<TaskHistoryType>("\"TaskYield\"").unwrap(), TaskHistoryType::Yield);
   }
 
   #[test]

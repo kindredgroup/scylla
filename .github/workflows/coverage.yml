@@ -15,17 +15,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
         with:
           toolchain: nightly
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
-          check-latest: true
-      - name: Setup Database
-        run: docker-compose up -d
-
-      - name: Run Migrations 
-        run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
-
       # - name: cargo build 
       #   run: cargo build
       

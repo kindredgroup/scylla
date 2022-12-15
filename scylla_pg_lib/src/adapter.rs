@@ -1,3 +1,5 @@
+// $coverage:ignore-start
+//! Ignored from coverage because of real database interactions. covered as part of component tests
 //! Adapter to implement database operations. 
 use async_trait::async_trait;
 use deadpool_postgres::{Client, Pool};

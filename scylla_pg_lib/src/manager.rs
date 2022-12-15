@@ -12,10 +12,14 @@ pub struct PgManager {
 
 
 impl PgManager {
+  // $coverage:ignore-start
+ //! Ignored from coverage because of real database interactions. covered as part of component tests
   pub fn from_config(config: PGConfig) -> Result<Self, PgAdapterError> {
     let pool = get_pool(config)?;
     Ok(Self { pg_adapter: Box::new(PgAdapter {pool}) } )
   }
+  // $coverage:ignore-end
+
   pub async fn fetch_task(&self, rn: String) -> Result<Task, PgAdapterError> {
     self.pg_adapter.query_by_rn(rn).await
   }

@@ -1,3 +1,5 @@
+// $coverage:ignore-start
+//! Ignored from coverage because of real database interactions. covered as part of component tests
 use crate::config::PGConfig;
 use deadpool_postgres::{Manager, ManagerConfig, Pool, RecyclingMethod};
 use tokio_postgres::{NoTls, Client, Config};

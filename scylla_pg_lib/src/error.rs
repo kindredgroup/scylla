@@ -1,5 +1,6 @@
 
-
+// $coverage:ignore-start
+//! Ignored from coverage because of usage of external error crates which cannot be instantiated
 use std::fmt::Display;
 
 use deadpool_postgres::{PoolError, BuildError};
