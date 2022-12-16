@@ -1,8 +1,6 @@
 name: master coverage
 
-on:
-  push:
-    branches: [ master ]
+on: push
 
 jobs:
   build:
