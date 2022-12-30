@@ -29,7 +29,7 @@ pub async fn get_client(config: &Config) -> Result<Client, tokio_postgres::Error
     let (client, connection) = config.connect(tokio_postgres::NoTls).await?;
     tokio::spawn(async move {
         if let Err(e) = connection.await {
-            eprintln!("connection error: {}", e);
+            eprintln!("connection error: {e}");
         }
     });
     Ok(client)

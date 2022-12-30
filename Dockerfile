@@ -1,4 +1,4 @@
-FROM rust:1.59.0-buster AS BUILD
+FROM rust:1.66.0-buster AS BUILD
 # Install software
 RUN update-ca-certificates && apt-get update && apt-get install -y libsasl2-dev
 

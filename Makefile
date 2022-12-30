@@ -29,7 +29,7 @@ dev.init: install
 	$(call pp,install git hooks...)
 	cargo install cargo-watch
 	cargo test
-	cd pg_js && npm install
+	cd scylla_pg_js && npm install
 
 
 # TEST / DEPLOY ###################################################################################

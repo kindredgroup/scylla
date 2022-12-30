@@ -13,8 +13,8 @@ use utils::filter_expired_tasks;
 fn handle_insert_return(res: &HashMap<String, Result<Task, PgAdapterError>>) {
     for (rn, task_res) in res {
         match task_res {
-            Ok(_) => println!("task with {} has been reset to ready state ", rn),
-            Err(e) => eprintln!("task with {} in reset failed to reset because of error: {:?}", rn, e),
+            Ok(_) => println!("task with {rn} has been reset to ready state "),
+            Err(e) => eprintln!("task with {rn} in reset failed to reset because of error: {e:?}"),
         }
     }
 }
@@ -48,6 +48,6 @@ async fn reset_tasks(pgm: &PgManager) {
             }
             handle_insert_return(&res);
         }
-        Err(e) => eprintln!("error e {:?}", e),
+        Err(e) => eprintln!("error e {e:?}"),
     }
 }

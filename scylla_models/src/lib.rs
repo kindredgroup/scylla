@@ -51,7 +51,7 @@ pub enum UpdateOperation {
 }
 impl Display for UpdateOperation {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 
@@ -86,7 +86,7 @@ impl TaskStatusExt for TaskStatus {
 
 impl Display for TaskStatus {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]

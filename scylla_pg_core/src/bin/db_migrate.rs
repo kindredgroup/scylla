@@ -26,8 +26,8 @@ async fn run_migrations() {
         Ok(mut client) => {
             let migration_result = embedded::migrations::runner().run_async(&mut client).await;
             match migration_result {
-                Ok(t) => println!("{:?}", t),
-                Err(e) => panic!("{}", e),
+                Ok(t) => println!("{t:?}"),
+                Err(e) => panic!("{e}"),
             }
         }
         Err(e) => panic!("{}", e),
@@ -44,7 +44,7 @@ async fn try_create_db() -> Result<(), tokio_postgres::Error> {
 
 /// Create database
 async fn create_db(client: &Client, database: &str) -> Result<(), tokio_postgres::Error> {
-    let create_db_ddl = format!("CREATE DATABASE \"{}\" ", database);
+    let create_db_ddl = format!("CREATE DATABASE \"{database}\"");
     let db_exec_result = client.execute(&create_db_ddl, &[]).await;
     match db_exec_result {
         Ok(_) => Ok(()),

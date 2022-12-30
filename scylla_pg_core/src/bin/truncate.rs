@@ -24,17 +24,17 @@ async fn run_db_operation() {
             let db_result = truncate_task_table(&client).await;
             match db_result {
                 Ok(_) => println!("Table task truncated"),
-                Err(e) => panic!("{}", e),
+                Err(e) => panic!("{e}"),
             }
         }
-        Err(e) => panic!("{}", e),
+        Err(e) => panic!("{e}"),
     }
 }
 /// This function is created for testing purpose and not to be used by library user. This may get removed in future release.
 /// # Errors
 /// Could return `tokio_postgres::Error`
 pub async fn truncate_task_table(client: &Client) -> Result<(), tokio_postgres::Error> {
-    let truncate_table_ddl ="TRUNCATE task".to_string();
+    let truncate_table_ddl = "TRUNCATE task".to_string();
     client.execute(&truncate_table_ddl, &[]).await?;
     Ok(())
 }
