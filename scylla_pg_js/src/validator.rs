@@ -9,8 +9,8 @@ pub enum JSScyllaError {
     // DomainError(#[from] PgAdapterError),
 }
 
-pub fn validate_status(status: String) -> Result<TaskStatus, JSScyllaError> {
-    match status.as_str() {
+pub fn validate_status(status: &str) -> Result<TaskStatus, JSScyllaError> {
+    match status {
         "running" => Ok(TaskStatus::Running),
         "ready" => Ok(TaskStatus::Ready),
         "completed" => Ok(TaskStatus::Completed),
@@ -20,8 +20,8 @@ pub fn validate_status(status: String) -> Result<TaskStatus, JSScyllaError> {
     }
 }
 
-pub fn validate_json(spec: String, field: String) -> Result<serde_json::Value, JSScyllaError> {
-    match serde_json::from_str(spec.as_str()) {
+pub fn validate_json(spec: &str, field: &str) -> Result<serde_json::Value, JSScyllaError> {
+    match serde_json::from_str(spec) {
         Ok(t) => Ok(t),
         Err(_) => Err(JSScyllaError::ArgumentValidationError(format!("Invalid JSON for {field}"))),
     }

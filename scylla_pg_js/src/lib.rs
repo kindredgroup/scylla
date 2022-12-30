@@ -3,12 +3,12 @@ mod models;
 mod validator;
 use napi_derive::napi;
 use scylla_models::{AddTaskModel, GetTaskModel, TaskError};
-use scylla_pg_lib::manager::{PgManager};
 use scylla_pg_core::config::PGConfig;
+use scylla_pg_lib::manager::PgManager;
 use std::fmt::Display;
 
-use models::*;
-use validator::*;
+use models::{JsAddTaskModel, JsGetTasksModel, JsTaskError};
+use validator::{validate_json, validate_port, validate_status, JSScyllaError};
 
 #[napi(object)]
 pub struct JsDbConfig {
@@ -33,12 +33,10 @@ pub struct ScyllaManager {
 
 #[napi]
 impl ScyllaManager {
-    // #[napi(constructor)]
-    // pub async fn new(js_db_config: JsDbConfig) -> Self {
-    //   Self { pg_manager: None }
-    // }
+    /// # Errors
+    /// Convert rust error into `napi::Error`
     #[napi]
-    pub async fn init_pg_config(js_db_config: JsDbConfig) -> napi::Result<ScyllaManager> {
+    pub fn init_pg_config(js_db_config: JsDbConfig) -> napi::Result<ScyllaManager> {
         let port = validate_port(js_db_config.pg_port)?;
         let pg_config = PGConfig {
             pg_host: js_db_config.pg_host,
@@ -48,19 +46,23 @@ impl ScyllaManager {
             pg_database: js_db_config.pg_database,
         };
         Ok(Self {
-            pg_manager: PgManager::from_config(pg_config).map_err(map_error_to_napi_error)?,
+            pg_manager: PgManager::from_config(&pg_config).map_err(map_error_to_napi_error)?,
         })
     }
+    /// # Errors
+    /// Convert rust error into `napi::Error`
     #[napi]
     pub async fn get_task(&self, rn: String) -> napi::Result<String> {
         let task_result = self.pg_manager.fetch_task(rn).await;
         map_lib_response!(task_result)
     }
+    /// # Errors
+    /// Convert rust error into `napi::Error`
     #[napi]
     pub async fn get_tasks(&self, js_gtm: JsGetTasksModel) -> napi::Result<String> {
         let status_val = match js_gtm.status {
             None => None,
-            Some(status) => Some(validate_status(status)?),
+            Some(status) => Some(validate_status(status.as_str())?),
         };
 
         let gtm = GetTaskModel {
@@ -72,10 +74,11 @@ impl ScyllaManager {
         let task_result = self.pg_manager.fetch_tasks(gtm).await;
         map_lib_response!(task_result)
     }
-
+    /// # Errors
+    /// Convert rust error into `napi::Error`
     #[napi]
     pub async fn add_task(&self, js_atm: JsAddTaskModel) -> napi::Result<String> {
-        let spec = validate_json(js_atm.spec, "spec".to_string())?;
+        let spec = validate_json(js_atm.spec.as_str(), "spec")?;
         let atm = AddTaskModel {
             rn: js_atm.rn,
             priority: js_atm.priority,
@@ -85,34 +88,39 @@ impl ScyllaManager {
         let task_result = self.pg_manager.insert_task(atm).await;
         map_lib_response!(task_result)
     }
-
+    /// # Errors
+    /// Convert rust error into `napi::Error`
     #[napi]
     pub async fn lease_task(&self, rn: String, worker: String) -> napi::Result<String> {
         let task_result = self.pg_manager.lease_task(rn, worker).await;
         map_lib_response!(task_result)
     }
-
+    /// # Errors
+    /// Convert rust error into `napi::Error`
     #[napi]
     pub async fn yield_task(&self, rn: String) -> napi::Result<String> {
         let task_result = self.pg_manager.yield_task(rn).await;
         map_lib_response!(task_result)
     }
-
+    /// # Errors
+    /// Convert rust error into `napi::Error`
     #[napi]
     pub async fn complete_task(&self, rn: String) -> napi::Result<String> {
         let task_result = self.pg_manager.complete_task(rn).await;
         map_lib_response!(task_result)
     }
-
+    /// # Errors
+    /// Convert rust error into `napi::Error`
     #[napi]
     pub async fn cancel_task(&self, rn: String) -> napi::Result<String> {
         let task_result = self.pg_manager.cancel_task(rn).await;
         map_lib_response!(task_result)
     }
-
+    /// # Errors
+    /// Convert rust error into `napi::Error`
     #[napi]
     pub async fn abort_task(&self, rn: String, js_error: JsTaskError) -> napi::Result<String> {
-        let error_args = validate_json(js_error.args, "errors.args".to_string())?;
+        let error_args = validate_json(js_error.args.as_str(), "errors.args")?;
         let task_error = TaskError {
             code: js_error.code,
             args: error_args,
@@ -121,7 +129,8 @@ impl ScyllaManager {
         let task_result = self.pg_manager.abort_task(rn, task_error).await;
         map_lib_response!(task_result)
     }
-
+    /// # Errors
+    /// Convert rust error into `napi::Error`
     #[napi]
     pub async fn heart_beat_task(&self, rn: String, progress: Option<f64>) -> napi::Result<String> {
         let mut progress_value = None;
@@ -132,7 +141,8 @@ impl ScyllaManager {
         map_lib_response!(task_result)
     }
 }
-
+/// # Errors
+/// Convert rust error into `napi::Error`
 fn map_error_to_napi_error<T: Display>(e: T) -> napi::Error {
     napi::Error::from_reason(e.to_string())
 }

@@ -2,8 +2,6 @@ mod common;
 use scylla_models::{AddTaskModel, TaskStatus};
 use scylla_pg_lib::error::PgAdapterError;
 
-
-
 #[tokio::test]
 #[ignore]
 async fn insert_task() {
@@ -14,8 +12,7 @@ async fn insert_task() {
         rn: "add_test_1".to_string(),
         queue: "add_test".to_string(),
         priority: 1,
-        spec: serde_json::from_str("{\"a\":\"b\"}").unwrap()
-
+        spec: serde_json::from_str("{\"a\":\"b\"}").unwrap(),
     };
 
     let inserted_task = pgm.insert_task(atm).await.unwrap();
@@ -29,11 +26,14 @@ async fn insert_task() {
         rn: "add_test_1".to_string(),
         queue: "add_test".to_string(),
         priority: 1,
-        spec: serde_json::from_str("{\"a\":\"b\"}").unwrap()
+        spec: serde_json::from_str("{\"a\":\"b\"}").unwrap(),
     };
     let inserted_task_result = pgm.insert_task(atm_with_same_rn).await;
     assert_eq!(inserted_task_result.is_err(), true);
-    assert_eq!(inserted_task_result.err().unwrap().to_string(), PgAdapterError::DuplicateTask("add_test_1".to_string()).to_string());
+    assert_eq!(
+        inserted_task_result.err().unwrap().to_string(),
+        PgAdapterError::DuplicateTask("add_test_1".to_string()).to_string()
+    );
     // truncate table after use
     common::truncate_table().await;
 }

@@ -21,12 +21,12 @@ jobs:
       - name: Set up Database
         run: docker-compose up -d
 
-      - name: Run Migrations 
+      - name: Run Migrations
         run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
 
-      - name: cargo build 
+      - name: cargo build
         run: cargo build
-      
+
       - name: npm install
         run: cd scylla_pg_js && npm install
 
@@ -39,9 +39,9 @@ jobs:
       - run: cargo test --examples
       - run: cargo doc --no-deps
 
-      # - run: bin/clippy-pedantic.sh
-      # - run: >
-      #     if [ $(bin/is-release.sh) = "1" ]; then 
-      #         cargo install cargo-get
-      #         bin/publish-all.sh
-      #     fi
+      - run: bin/clippy-pedantic.sh
+#       - run: >
+#           if [ $(bin/is-release.sh) = "1" ]; then
+#               cargo install cargo-get
+#               bin/publish-all.sh
+#           fi
