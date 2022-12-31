@@ -10,6 +10,7 @@ jobs:
       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
       DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
       DOCKER_HUB_USER:  ${{ secrets.DOCKER_HUB_USER }}
+      NPM_TOKEN:  ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -45,4 +46,5 @@ jobs:
       - run: >
           if [ $(bin/is-release.sh) = "1" ]; then
               PATH=$PATH:$(pwd) bin/docker-push.sh
+              PATH=$PATH:$(pwd) bin/npm-release.sh
           fi

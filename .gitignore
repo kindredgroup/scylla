@@ -9,9 +9,10 @@ coverage
 *.profraw
 /doc
 .env
-#### node #### 
+#### node ####
 node_modules
 *.node
+scylla_pg_client/
 
 ### Editors ###
 .vscode/*
