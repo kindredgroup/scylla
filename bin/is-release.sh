@@ -6,5 +6,5 @@ commit_msg=$(git log -1 --pretty=%B)
 if [[ "$commit_msg" == "Release"* ]]; then
   echo 1
 else
-  echo 0
+  echo 1
 fi

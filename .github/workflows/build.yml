@@ -8,6 +8,8 @@ jobs:
     environment: publish
     env:
       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+      DOCKER_HUB_USER:  ${{ secrets.DOCKER_HUB_USER }}
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -40,8 +42,7 @@ jobs:
       - run: cargo doc --no-deps
 
       - run: bin/clippy-pedantic.sh
-#       - run: >
-#           if [ $(bin/is-release.sh) = "1" ]; then
-#               cargo install cargo-get
-#               bin/publish-all.sh
-#           fi
+      - run: >
+          if [ $(bin/is-release.sh) = "1" ]; then
+              PATH=$PATH:$(pwd) bin/docker-push.sh
+          fi

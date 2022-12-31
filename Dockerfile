@@ -17,7 +17,7 @@ RUN adduser \
 WORKDIR /tmp
 COPY ./ .
 # Build binary in release mode
-RUN cargo build --release --bin pg_monitor
+RUN cargo build --release --bin scylla_pg_monitor
 
 #
 # Run image based on buster-slim to reduce image size while still using glibc
@@ -29,8 +29,8 @@ WORKDIR /opt/build
 COPY --from=BUILD /etc/passwd /etc/passwd
 COPY --from=BUILD /etc/group /etc/group
 # Copy binary from build
-COPY --from=BUILD /tmp/target/release/pg_monitor ./
+COPY --from=BUILD /tmp/target/release/scylla_pg_monitor ./
 # Use an unprivileged user
 USER ${USER}:${USER}
 # Entry point
-CMD ["/opt/build/pg_monitor"]
+CMD ["/opt/build/scylla_pg_monitor"]
