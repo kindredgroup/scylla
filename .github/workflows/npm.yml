@@ -196,7 +196,7 @@ jobs:
           path: scylla_pg_js/artifacts
       - name: setup docker container env
         run: brew install colima docker docker-compose
-
+      - run: colima start
       - name: Set up Database
         run: docker-compose up -d
 
