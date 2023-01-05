@@ -1,0 +1,15 @@
+{
+  "name": "scylla_pg_js-darwin-universal",
+  "version": "0.0.0",
+  "os": [
+    "darwin"
+  ],
+  "main": "scylla_pg_js.darwin-universal.node",
+  "files": [
+    "scylla_pg_js.darwin-universal.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  }
+}

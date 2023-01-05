@@ -1,0 +1,30 @@
+{
+  "name": "scylla_lib_example",
+  "version": "0.0.1",
+  "description": "Test app to run latest scylla_pg_client version in ci/cd",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kindredgroup/scylla.git"
+  },
+  "keywords": [
+    "scylla",
+    "task-scheduler"
+  ],
+  "author": "Anil Sharma",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kindredgroup/scylla/issues"
+  },
+  "homepage": "https://github.com/kindredgroup/scylla#readme",
+  "dependencies": {
+    "scylla_pg_client": "^0.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.9.4"
+  }
+}

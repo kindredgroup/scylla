@@ -1,0 +1,1 @@
+scylla_pg_client is lightweight wrapper on top of scylla_pg_js to overcome limitations of napi-rs. Like enums are not correctly communicated between rust and typescript.

@@ -1,6 +1,6 @@
 [package]
 name = "scylla_pg_js"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 
@@ -8,14 +8,14 @@ edition = "2021"
 crate-type = ["cdylib"]
 [dependencies]
 # lib for napi bindings
-napi = { version = "2", features = [
+napi = { version = "2.10.3", features = [
     "async",
     "tokio_rt",
     "napi8",
     "chrono_date",
     "serde-json",
 ] }
-napi-derive = { version = "2" }
+napi-derive = "2.9.3"
 thiserror = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
