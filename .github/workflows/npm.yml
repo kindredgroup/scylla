@@ -129,9 +129,6 @@ jobs:
       - name: List packages
         run: ls -R .
         shell: bash
-
-      - name: Test bindings
-        run: cd scylla_pg_js && npm test
   test-linux-x64-gnu-binding:
     name: Test bindings on Linux-x64-gnu - node@${{ matrix.node }}
     needs:
@@ -188,7 +185,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: bindings-x86_64-apple-darwin
-          path: artifacts
+          path: scylla_pg_js/artifacts
       - name: Download macOS arm64 artifact
         uses: actions/download-artifact@v3
         with:
