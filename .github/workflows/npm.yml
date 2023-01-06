@@ -127,15 +127,18 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: scylla_pg_js/artifacts
-      - run: cd scylla_pg_js/npm && cp -R **/*.node .
+      - run: cd scylla_pg_js/artifacts && cp -R **/*.node .
       - run: cd scylla_pg_js && npm run universal
       - name: Move artifacts
         run: cd scylla_pg_js && npm run artifacts
-      - name: List packages
-        run: ls -R ./scylla_pg_js/npm
+      - run: ls -R ./scylla_pg_js/npm
+      - run: ls -R ./scylla_pg_js/artifacts
         shell: bash
       - name: Publish
-        run: |
-          cd scylla_pg_js && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc && npm publish --tag next --access public
+      - run: >
+          if [ $(bin/is-release.sh) = "1" ]; then
+            PATH=$PATH:$(pwd) bin/docker-push.sh
+            PATH=$PATH:$(pwd) bin/npm-release.sh
+          fi
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
