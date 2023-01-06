@@ -134,6 +134,6 @@ jobs:
         shell: bash
       - name: Publish
         run: |
-          cd scylla_pg_js && npm publish --tag next --access public
+          cd scylla_pg_js && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc && npm publish --tag next --access public
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
