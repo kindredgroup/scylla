@@ -28,11 +28,16 @@ for i in $arch_packages; do
     set_version "$i"
     release_package "$i"
 done
-
+# release pg_js package
 set_version ./scylla_pg_js/
-set_version ./scylla_pg_client/
-
 release_package scylla_pg_js
+# release pg_client package
+set_version ./scylla_pg_client/
+cd scylla_pg_client
+npm pkg set dependencies.scylla_pg_js=$cargo_version
+npm install
+npm run build
+
 release_package scylla_pg_client
 
 
