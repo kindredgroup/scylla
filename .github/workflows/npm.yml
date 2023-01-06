@@ -95,7 +95,7 @@ jobs:
 
       - name: Test bindings
         run: cd scylla_pg_js && npm run test
-#        if: ${{ matrix.settings.host != 'windows-latest' }}
+        if: ${{ matrix.settings.target != 'aarch64-apple-darwin' }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
