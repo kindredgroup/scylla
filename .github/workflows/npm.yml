@@ -126,7 +126,9 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v3
         with:
-          path: artifacts
+          path: scylla_pg_js/artifacts
+      - run: cd scylla_pg_js/npm && cp -R **/*.node .
+      - run: cd scylla_pg_js && npm run universal
       - name: Move artifacts
         run: cd scylla_pg_js && npm run artifacts
       - name: List packages
