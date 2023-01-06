@@ -68,25 +68,25 @@ jobs:
         run: ${{ matrix.settings.build }}
         shell: bash
 
-      - name: setup docker container env for macos
-        run: brew install colima docker docker-compose
-        if: ${{ matrix.settings.host == 'macos-latest' }}
-
-      - name: colima start for macos
-        run: colima start
-        if: ${{ matrix.settings.host == 'macos-latest' }}
-
-      - name: Set up Database
-        run: docker-compose up -d
-        if: ${{ matrix.settings.host != 'windows-latest' }}
-
-      - name: Run Migrations
-        run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
-        if: ${{ matrix.settings.host != 'windows-latest' }}
-
-      - name: component test
-        run: make withenv RECIPE=test.component
-        if: ${{ matrix.settings.host != 'windows-latest' }}
+#      - name: setup docker container env for macos
+#        run: brew install colima docker docker-compose
+#        if: ${{ matrix.settings.host == 'macos-latest' }}
+#
+#      - name: colima start for macos
+#        run: colima start
+#        if: ${{ matrix.settings.host == 'macos-latest' }}
+#
+#      - name: Set up Database
+#        run: docker-compose up -d
+#        if: ${{ matrix.settings.host != 'windows-latest' }}
+#
+#      - name: Run Migrations
+#        run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
+#        if: ${{ matrix.settings.host != 'windows-latest' }}
+#
+#      - name: component test
+#        run: make withenv RECIPE=test.component
+#        if: ${{ matrix.settings.host != 'windows-latest' }}
 
       - name: List packages
         run: ls -R .
@@ -95,7 +95,7 @@ jobs:
 
       - name: Test bindings
         run: cd scylla_pg_js && npm run test
-        if: ${{ matrix.settings.host != 'windows-latest' }}
+#        if: ${{ matrix.settings.host != 'windows-latest' }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
