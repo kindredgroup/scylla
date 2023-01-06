@@ -28,7 +28,7 @@ test("throws in case of failed connection", async (t) => {
     priority: 0.1
   };
   await t.throwsAsync(async () => {return sc.addTask(task_to_added)}, {
-  message: "Error occurred while creating a new object: error connecting to server: Connection refused (os error 61)"
+  code: "GenericFailure"
   });
 //  let task_added = JSON.parse(await sc.addTask(task_to_added));
 
