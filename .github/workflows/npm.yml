@@ -70,28 +70,22 @@ jobs:
       - name: Set up Database
         run: docker-compose up -d
         if: ${{ matrix.settings.host != 'windows-latest' }}
-
       - name: Run Migrations
         run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
         if: ${{ matrix.settings.host != 'windows-latest' }}
-
-
       - name: component test
         run: make withenv RECIPE=test.component
         if: ${{ matrix.settings.host != 'windows-latest' }}
-
       - name: List packages
         run: ls -R .
         shell: bash
-
       - name: Test bindings
         run: cd scylla_pg_js && npm run test
-
       - name: setup docker container env for macos
         run: brew install colima docker docker-compose
         if: ${{ matrix.settings.host == 'macos-latest' }}
 
-      - name: setup docker container env for macos
+      - name: colima start for macos
       - run: colima start
         if: ${{ matrix.settings.host == 'macos-latest' }}
 
