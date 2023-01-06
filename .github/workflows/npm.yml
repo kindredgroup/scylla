@@ -122,13 +122,14 @@ jobs:
         with:
           path: artifacts
       - name: Move artifacts
-        run: npm run artifacts
+        run: cd scylla_pg_js && npm run artifacts
       - name: List packages
-        run: ls -R ./npm
+        run: ls -R ./scylla_pg_js/npm
         shell: bash
       - name: Publish
         run: |
           cd scylla_pg_js && npm publish --tag next --access public
+        environment: publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
