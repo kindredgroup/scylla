@@ -63,33 +63,42 @@ jobs:
         run: ${{ matrix.settings.setup }}
         if: ${{ matrix.settings.setup }}
         shell: bash
-      - name: Setup node x86
-        if: matrix.settings.target == 'i686-pc-windows-msvc'
-        run: cd scylla_pg_js && npm config set supportedArchitectures.cpu "ia32"
-        shell: bash
       - name: Install dependencies
         run: cd scylla_pg_js && npm install
-      - name: Setup node x86
-        uses: actions/setup-node@v3
-        if: matrix.settings.target == 'i686-pc-windows-msvc'
-        with:
-          node-version: 16
-          check-latest: true
-          architecture: x86
-      - name: Build in docker
-        uses: addnab/docker-run-action@v3
-        if: ${{ matrix.settings.docker }}
-        with:
-          image: ${{ matrix.settings.docker }}
-          options: '--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build'
-          run: ${{ matrix.settings.build }}
       - name: cargo build
         run: cargo build
       - run: bin/clippy-pedantic.sh
       - name: Build
         run: ${{ matrix.settings.build }}
-        if: ${{ !matrix.settings.docker }}
         shell: bash
+      - name: Set up Database
+        run: docker-compose up -d
+        if: ${{ matrix.settings.host != 'windows-latest' }}
+
+      - name: Run Migrations
+        run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
+        if: ${{ matrix.settings.host != 'windows-latest' }}
+
+
+      - name: component test
+        run: make withenv RECIPE=test.component
+        if: ${{ matrix.settings.host != 'windows-latest' }}
+
+      - name: List packages
+        run: ls -R .
+        shell: bash
+
+      - name: Test bindings
+        run: cd scylla_pg_js && npm run test
+
+      - name: setup docker container env for macos
+        run: brew install colima docker docker-compose
+        if: ${{ matrix.settings.host == 'macos-latest' }}
+
+      - name: setup docker container env for macos
+      - run: colima start
+        if: ${{ matrix.settings.host == 'macos-latest' }}
+
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
@@ -168,7 +177,7 @@ jobs:
       - name: Test bindings
         run: cd scylla_pg_js && npm run test
   test-macOS-binding:
-    name: Build universal macOS binary
+    name: Test and build universal macOS binary
     needs:
       - build
     runs-on: macos-latest
