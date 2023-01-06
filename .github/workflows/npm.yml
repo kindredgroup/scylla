@@ -86,7 +86,7 @@ jobs:
         if: ${{ matrix.settings.host == 'macos-latest' }}
 
       - name: colima start for macos
-      - run: colima start
+        run: colima start
         if: ${{ matrix.settings.host == 'macos-latest' }}
 
       - name: Test bindings
