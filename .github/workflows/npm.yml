@@ -103,8 +103,8 @@ jobs:
           name: bindings-${{ matrix.settings.target }}
           path: scylla_pg_js/${{ env.APP_NAME }}.*.node
           if-no-files-found: error
-  publish:
-    name: Publish
+  npm-publish:
+    name: npm publish
     runs-on: macos-latest
     environment: publish
     env:
@@ -145,5 +145,3 @@ jobs:
             PATH=$PATH:$(pwd) bin/docker-push.sh
             PATH=$PATH:$(pwd) bin/npm-release.sh
           fi
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
