@@ -15,7 +15,6 @@ set_version() {
 
 # update versions for multiple arch
 release_package() {
-  cd $current_directory
   package_name=$1
   cd $package_name
   echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
@@ -25,18 +24,23 @@ release_package() {
 
 arch_packages=$(find scylla_pg_js/npm -maxdepth 1 -type d \( ! -name npm \))
 for i in $arch_packages; do
+    cd $current_directory
     set_version "$i"
     release_package "$i"
 done
+
 # release pg_js package
+cd $current_directory
 set_version ./scylla_pg_js/
 release_package scylla_pg_js
 # release pg_client package
+cd $current_directory
 set_version ./scylla_pg_client/
-cd scylla_pg_client
-npm pkg set dependencies.scylla_pg_js=$cargo_version
-npm install
-npm run build
+echo " curent: $PWD"
+
+npm --prefix ./scylla_pg_client/ pkg set dependencies.scylla_pg_js=$cargo_version
+npm --prefix ./scylla_pg_client/ install
+npm --prefix ./scylla_pg_client/ run build
 
 release_package scylla_pg_client
 
