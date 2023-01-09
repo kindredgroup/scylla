@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 current_directory=$PWD
-
+rm -rf Cargo.lock
+cargo build --release
 cargo_version=$(cargo pkgid -p scylla_pg_js | cut -d# -f2 | cut -d: -f2)
 echo $cargo_version
 # updating same version for all the related packages
