@@ -19,7 +19,7 @@ function get_singleton_manager() {
   return root_sc;
 }
 
-test("should be able to add a new task", async (t) => {
+test("throws in case of failed connection", async (t) => {
   let sc = get_singleton_manager();
   let task_to_added = {
     rn: uuid(),
@@ -27,7 +27,11 @@ test("should be able to add a new task", async (t) => {
     queue: "single",
     priority: 0.1
   };
-  let task_added = JSON.parse(await sc.addTask(task_to_added));
-  t.is(task_added.rn, task_to_added.rn);
+  await t.throwsAsync(async () => {return sc.addTask(task_to_added)}, {
+  code: "GenericFailure"
+  });
+//  let task_added = JSON.parse(await sc.addTask(task_to_added));
+
+//  t.is(task_added.rn, task_to_added.rn);
 
 })

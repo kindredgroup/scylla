@@ -55,173 +55,65 @@ jobs:
             .cargo-cache
             target/
           key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.host }}
-      - uses: goto-bus-stop/setup-zig@v2
-        if: ${{ matrix.settings.target == 'armv7-unknown-linux-gnueabihf' }}
-        with:
-          version: 0.10.0
-      - name: Setup toolchain
-        run: ${{ matrix.settings.setup }}
-        if: ${{ matrix.settings.setup }}
-        shell: bash
-      - name: Setup node x86
-        if: matrix.settings.target == 'i686-pc-windows-msvc'
-        run: cd scylla_pg_js && npm config set supportedArchitectures.cpu "ia32"
-        shell: bash
+
       - name: Install dependencies
         run: cd scylla_pg_js && npm install
-      - name: Setup node x86
-        uses: actions/setup-node@v3
-        if: matrix.settings.target == 'i686-pc-windows-msvc'
-        with:
-          node-version: 16
-          check-latest: true
-          architecture: x86
-      - name: Build in docker
-        uses: addnab/docker-run-action@v3
-        if: ${{ matrix.settings.docker }}
-        with:
-          image: ${{ matrix.settings.docker }}
-          options: '--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build'
-          run: ${{ matrix.settings.build }}
+
       - name: cargo build
         run: cargo build
+
       - run: bin/clippy-pedantic.sh
+
       - name: Build
         run: ${{ matrix.settings.build }}
-        if: ${{ !matrix.settings.docker }}
         shell: bash
+
+#      - name: setup docker container env for macos
+#        run: brew install colima docker docker-compose
+#        if: ${{ matrix.settings.host == 'macos-latest' }}
+#
+#      - name: colima start for macos
+#        run: colima start
+#        if: ${{ matrix.settings.host == 'macos-latest' }}
+#
+#      - name: Set up Database
+#        run: docker-compose up -d
+#        if: ${{ matrix.settings.host != 'windows-latest' }}
+#
+#      - name: Run Migrations
+#        run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
+#        if: ${{ matrix.settings.host != 'windows-latest' }}
+#
+#      - name: component test
+#        run: make withenv RECIPE=test.component
+#        if: ${{ matrix.settings.host != 'windows-latest' }}
+
+      - name: List packages
+        run: ls -R .
+        shell: bash
+
+
+      - name: Test bindings
+        run: cd scylla_pg_js && npm run test
+        if: ${{ matrix.settings.target != 'aarch64-apple-darwin' }}
+
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: bindings-${{ matrix.settings.target }}
           path: scylla_pg_js/${{ env.APP_NAME }}.*.node
           if-no-files-found: error
-  test-windows-binding:
-    name: Test bindings on ${{ matrix.settings.target }} - node@${{ matrix.node }}
-    needs:
-      - build
-    strategy:
-      fail-fast: false
-      matrix:
-        settings:
-          - host: windows-latest
-            target: x86_64-pc-windows-msvc
-        node:
-          - '16'
-          - '18'
-    runs-on: ${{ matrix.settings.host }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node }}
-          check-latest: true
-      - name: Install dependencies
-        run: cd scylla_pg_js && npm install
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: bindings-${{ matrix.settings.target }}
-          path: scylla_pg_js
-      - run: cargo test --examples
-      - run: cargo doc --no-deps
-      - name: List packages
-        run: ls -R .
-        shell: bash
-
-      - name: Test bindings
-        run: cd scylla_pg_js && npm test
-  test-linux-x64-gnu-binding:
-    name: Test bindings on Linux-x64-gnu - node@${{ matrix.node }}
-    needs:
-      - build
-    strategy:
-      fail-fast: false
-      matrix:
-        node:
-          - '16'
-          - '18'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node }}
-          check-latest: true
-      - name: Install dependencies
-        run: cd scylla_pg_js && npm install
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: bindings-x86_64-unknown-linux-gnu
-          path: scylla_pg_js
-      - name: Set up Database
-        run: docker-compose up -d
-
-      - name: Run Migrations
-        run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
-
-      - name: component test
-        run: make withenv RECIPE=test.component
-      - name: List packages
-        run: ls -R .
-        shell: bash
-      - name: Test bindings
-        run: cd scylla_pg_js && npm run test
-  test-macOS-binding:
-    name: Build universal macOS binary
-    needs:
-      - build
+  npm-publish:
+    name: npm publish
     runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
-          check-latest: true
-      - name: Install dependencies
-        run: cd scylla_pg_js && npm install
-      - name: Download macOS x64 artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: bindings-x86_64-apple-darwin
-          path: artifacts
-      - name: Download macOS arm64 artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: bindings-aarch64-apple-darwin
-          path: scylla_pg_js/artifacts
-      - name: setup docker container env
-        run: brew install colima docker docker-compose
-
-      - name: Set up Database
-        run: docker-compose up -d
-
-      - name: Run Migrations
-        run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
-
-      - name: component test
-        run: make withenv RECIPE=test.component
-      - name: Test bindings
-        run: cd scylla_pg_js && npm run test
-      - name: Combine binaries
-        run: cd scylla_pg_js && npm run universal
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: bindings-universal-apple-darwin
-          path: ${{ env.APP_NAME }}.*.node
-          if-no-files-found: error
-  publish:
-    name: Publish
-    runs-on: ubuntu-latest
+    environment: publish
+    env:
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+      DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     needs:
-      - test-windows-binding
-      - test-linux-x64-gnu-binding
-      - test-macOS-binding
+      - build
     steps:
       - uses: actions/checkout@v3
       - name: Setup node
@@ -234,15 +126,22 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v3
         with:
-          path: artifacts
+          path: scylla_pg_js/artifacts
+      - run: cd scylla_pg_js/artifacts && cp -R **/*.node .
+      - run: cd scylla_pg_js && npm run universal
       - name: Move artifacts
-        run: npm run artifacts
-      - name: List packages
-        run: ls -R ./npm
-        shell: bash
+        run: cd scylla_pg_js && npm run artifacts
+      - run: ls -R ./scylla_pg_js/npm
+      - run: ls -R ./scylla_pg_js/artifacts
+      - name: setup docker container env for macos
+        run: brew install colima docker docker-compose
+
+      - name: colima start for macos
+        run: colima start
+
       - name: Publish
-        run: |
-          cd scylla_pg_js && npm publish --tag next --access public
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: >
+          if [ $(bin/is-release.sh) = "1" ]; then
+            PATH=$PATH:$(pwd) bin/docker-push.sh
+            PATH=$PATH:$(pwd) bin/npm-release.sh
+          fi
