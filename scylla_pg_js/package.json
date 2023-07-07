@@ -1,6 +1,6 @@
 {
   "name": "scylla_pg_js",
-  "version": "0.1.1",
+  "version": "0.1.4",
   "main": "index.js",
   "types": "index.d.ts",
   "napi": {
@@ -17,6 +17,13 @@
     "@napi-rs/cli": "^2.14.0",
     "ava": "^4.3.3",
     "uuid": "^9.0.0"
+  },
+  "dependencies": {
+    "scylla_pg_js-darwin-universal": "0.1.4",
+    "scylla_pg_js-darwin-arm64": "0.1.4",
+    "scylla_pg_js-darwin-x64": "0.1.4",
+    "scylla_pg_js-darwin-linux-x64-gnu": "0.1.4",
+    "scylla_pg_js-darwin-win32-x64-msvc": "0.1.4"
   },
   "ava": {
     "timeout": "3m"
