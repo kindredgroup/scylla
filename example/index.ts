@@ -1,8 +1,10 @@
-import Scylla, {TaskStatus} from "scylla_pg_client";
+// import Scylla, {TaskStatus} from "../scylla_pg_client";
+
+import Scylla,{TaskStatus} from "scylla_pg_client";
 
 (async () => {
-  // console.log("type of scylla", typeof Scylla);
-  let sc: Scylla = await Scylla.initiate(
+  console.log("type of scylla", typeof Scylla);
+  let sc = await Scylla.initiate(
     {
       pgHost: "127.0.0.1",
       pgPort: 5432,

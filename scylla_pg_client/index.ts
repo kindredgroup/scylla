@@ -1,4 +1,4 @@
-import {JsAddTaskModel, JsDbConfig, JsGetTasksModel, ScyllaManager} from "../scylla_pg_js";
+import {JsAddTaskModel, JsDbConfig, JsGetTasksModel, ScyllaManager} from "scylla_pg_js";
 
 
 export enum TaskStatus {
@@ -37,7 +37,7 @@ export declare type AddTaskModel = {
 export declare type GetTaskModel = {
   status?: TaskStatus
   queue?: string
-  worker?: object
+  worker?: string
   limit?: number
 };
 
