@@ -46,6 +46,6 @@
   "scripts": {
     "build": "tsc",
     "test": "ava",
-    "prepublishonly": "esbuild --minify --outfile=dist/index.js --allow-overwrite dist/index.js "
+    "prepublishOnly": "esbuild --minify --outfile=dist/index.js --allow-overwrite dist/index.js "
   }
 }
