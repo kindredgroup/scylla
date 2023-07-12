@@ -15,13 +15,25 @@
   "license": "MIT",
   "dependencies": {
     "scylla_pg_js": "0.1.5"
-
   },
   "devDependencies": {
+    "@ava/typescript": "^4.1.0",
     "@types/node": "^18.11.18",
-    "typescript": "^4.9.4",
+    "@types/uuid": "^9.0.2",
     "ava": "^4.3.3",
+    "typescript": "^4.9.4",
     "uuid": "^9.0.0"
+  },
+  "ava": {
+    "typescript": {
+      "rewritePaths": {
+        "/": "dist/"
+      },
+      "extensions": [
+        "ts"
+      ],
+      "compile": false
+    }
   },
   "main": "index.js",
   "types": "index.d.ts",
@@ -29,6 +41,7 @@
     "index.js",
     "index.d.ts"
   ],
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "test": "ava"
