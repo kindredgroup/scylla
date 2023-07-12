@@ -18,7 +18,7 @@ set_version() {
 release_package() {
   package_name=$1
   cd $package_name
-  npm run prepublishonly
+#  npm prepublishOnly
   echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
   npm publish
 }
