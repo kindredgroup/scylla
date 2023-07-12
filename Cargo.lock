@@ -1117,7 +1117,7 @@ dependencies = [
 
 [[package]]
 name = "scylla_pg_js"
-version = "0.1.9"
+version = "0.1.11"
 dependencies = [
  "chrono",
  "env_logger",
@@ -1157,7 +1157,7 @@ dependencies = [
 
 [[package]]
 name = "scylla_pg_monitor"
-version = "0.1.3"
+version = "0.1.10"
 dependencies = [
  "async-trait",
  "chrono",
