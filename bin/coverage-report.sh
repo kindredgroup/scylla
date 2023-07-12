@@ -12,7 +12,7 @@ echo $base_dir
 app_name=scylla
 export CARGO_INCREMENTAL="0"
 export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort -Clink-args=-Wl,-undefined,dynamic_lookup"
-
+cargo update
 echo "Compiling $app_name"
 cargo +nightly build
 
