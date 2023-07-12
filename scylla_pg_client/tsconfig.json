@@ -3,7 +3,7 @@
     "target": "ES2021",
     "strict": true,
     "moduleResolution": "node",
-    "module": "CommonJS",
+    "module": "ESNext",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "esModuleInterop": true,
