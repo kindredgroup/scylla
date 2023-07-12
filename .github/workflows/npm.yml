@@ -142,6 +142,5 @@ jobs:
       - name: Publish
         run: >
           if [ $(bin/is-release.sh) = "1" ]; then
-#            PATH=$PATH:$(pwd) bin/docker-push.sh
             PATH=$PATH:$(pwd) bin/npm-release.sh
           fi
