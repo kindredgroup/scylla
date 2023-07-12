@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2018",
+    "target": "ES2021",
     "strict": true,
     "moduleResolution": "node",
     "module": "CommonJS",
@@ -12,6 +12,6 @@
     "allowSyntheticDefaultImports": true
   },
   "include": ["./**/*.js", "./**/*.mjs", "./**/*.ts", "./**/*.tsx"],
-  "files": ["index.js"],
-  "exclude": ["node_modules"]
+  "files": ["index.ts", "__test__/index.spec.ts"],
+  "exclude": ["node_modules","dist"]
 }
