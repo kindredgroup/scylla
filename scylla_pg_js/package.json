@@ -1,6 +1,6 @@
 {
   "name": "scylla_pg_js",
-  "version": "0.1.7",
+  "version": "0.1.10",
   "main": "index.js",
   "types": "index.d.ts",
   "napi": {
@@ -16,7 +16,8 @@
   "devDependencies": {
     "@napi-rs/cli": "^2.14.0",
     "ava": "^4.3.3",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "esbuild": "^0.18.0"
   },
   "ava": {
     "timeout": "3m"
@@ -30,7 +31,8 @@
     "build:debug": "napi build --platform",
     "test": "ava",
     "universal": "napi universal",
-    "version": "napi version"
+    "version": "napi version",
+    "prepublishOnly": "napi prepublish -t npm && esbuild --minify --outfile=index.js --allow-overwrite index.js"
   },
   "packageManager": "yarn@3.3.1"
 }
