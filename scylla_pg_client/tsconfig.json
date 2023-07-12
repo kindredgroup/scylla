@@ -8,10 +8,11 @@
     "noUnusedParameters": true,
     "esModuleInterop": true,
     "allowJs": true,
-    "outDir": "dist",
-    "allowSyntheticDefaultImports": true
+    "outDir": "./",
+    "allowSyntheticDefaultImports": true,
+    "declaration": true
   },
-  "include": ["./**/*.js", "./**/*.mjs", "./**/*.ts", "./**/*.tsx"],
-  "files": ["index.ts", "__test__/index.spec.ts"],
-  "exclude": ["node_modules","dist"]
+  "include": ["./**/*.js", "./**/*.mjs", "./**/*.ts", "./**/*.tsx", "/**/*.d.ts"],
+  "files": ["index.ts"],
+  "exclude": ["node_modules", "dist"]
 }

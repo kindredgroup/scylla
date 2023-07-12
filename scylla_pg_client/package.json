@@ -14,7 +14,7 @@
   "email": "asharmaanil@gmail.com",
   "license": "MIT",
   "dependencies": {
-    "scylla_pg_js": "0.1.9"
+    "scylla_pg_js": "0.1.11"
   },
   "devDependencies": {
     "@ava/typescript": "^4.1.0",
@@ -43,7 +43,7 @@
     "index.d.ts"
   ],
   "scripts": {
-    "build": "tsc && esbuild --minify --outfile=dist/index.js --allow-overwrite dist/index.js",
+    "build": "tsc",
     "test": "ava"
   }
 }

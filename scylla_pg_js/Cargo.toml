@@ -1,6 +1,6 @@
 [package]
 name = "scylla_pg_js"
-version = "0.1.11"
+version = "0.1.12"
 edition = "2021"
 
 
