@@ -22,7 +22,8 @@
     "@types/uuid": "^9.0.2",
     "ava": "^4.3.3",
     "typescript": "^4.9.4",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "esbuild": "^0.18.0"
   },
   "ava": {
     "typescript": {
@@ -44,6 +45,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "test": "ava"
+    "test": "ava",
+    "prepublishonly": "esbuild --minify --outfile=dist/index.js --allow-overwrite dist/index.js "
   }
 }

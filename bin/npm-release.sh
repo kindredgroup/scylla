@@ -18,17 +18,18 @@ set_version() {
 release_package() {
   package_name=$1
   cd $package_name
+  npm run prepublishonly
   echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
   npm publish
 }
 
 
-arch_packages=$(find scylla_pg_js/npm -maxdepth 1 -type d \( ! -name npm \))
-for i in $arch_packages; do
-    cd $current_directory
-    set_version "$i"
-    release_package "$i"
-done
+#arch_packages=$(find scylla_pg_js/npm -maxdepth 1 -type d \( ! -name npm \))
+#for i in $arch_packages; do
+#    cd $current_directory
+#    set_version "$i"
+#    release_package "$i"
+#done
 
 # release pg_js package
 cd $current_directory
