@@ -27,7 +27,7 @@ jobs:
             target: aarch64-apple-darwin
             build: |
               cd scylla_pg_js && npm run build -- --target aarch64-apple-darwin
-    name: stable - ${{ matrix.settings.target }} - node@16
+    name: stable - ${{ matrix.settings.target }} - node@18
     runs-on: ${{ matrix.settings.host }}
     steps:
       - uses: actions/checkout@v3
@@ -35,7 +35,7 @@ jobs:
         uses: actions/setup-node@v3
         if: ${{ !matrix.settings.docker }}
         with:
-          node-version: 16
+          node-version: 18
           check-latest: true
       - name: Install
         uses: actions-rs/toolchain@v1

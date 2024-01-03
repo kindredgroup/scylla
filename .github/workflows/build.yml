@@ -13,13 +13,13 @@ jobs:
       NPM_TOKEN:  ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.75.0
         with:
           toolchain: stable
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
           check-latest: true
       - name: Set up Database
         run: docker-compose up -d
