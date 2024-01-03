@@ -11,7 +11,7 @@ function get_singleton_manager() {
   let sc = ScyllaManager.initPgConfig({
     pgHost: "127.0.0.1",
     pgPort: 5432,
-    pgUser: "admin",
+    pgUser: "postgres",
     pgPassword: "admin",
     pgDatabase: "scylla"
   })
@@ -19,19 +19,35 @@ function get_singleton_manager() {
   return root_sc;
 }
 
-test("throws in case of failed connection", async (t) => {
+test("add and lease", async (t) => {
   let sc = get_singleton_manager();
-  let task_to_added = {
+  let taskToAdd = {
     rn: uuid(),
     spec: JSON.stringify({job: "1", output: "f"}),
     queue: "single",
     priority: 0.1
   };
-  await t.throwsAsync(async () => {return sc.addTask(task_to_added)}, {
-  code: "GenericFailure"
-  });
-//  let task_added = JSON.parse(await sc.addTask(task_to_added));
 
-//  t.is(task_added.rn, task_to_added.rn);
+ let taskAdded = JSON.parse(await sc.addTask(taskToAdd));
 
+ t.is(taskAdded.rn, taskToAdd.rn);
+ let leasedTask = JSON.parse(await sc.leaseTask(taskAdded.rn, "worker"));
+ t.is(leasedTask.status, "running");
 })
+
+test("add and lease with timeout", async (t) => {
+  let sc = get_singleton_manager();
+  let taskToAdd = {
+    rn: uuid(),
+    spec: JSON.stringify({job: "1", output: "f"}),
+    queue: "single",
+    priority: 0.1
+  };
+
+  let taskAdded = JSON.parse(await sc.addTask(taskToAdd));
+
+  t.is(taskAdded.rn, taskToAdd.rn);
+  let leasedTask = JSON.parse(await sc.leaseTask(taskAdded.rn, "worker", 20));
+  t.is(leasedTask.status, "running");
+})
+

@@ -40,7 +40,7 @@ impl PgManager {
     }
     /// # Errors
     /// Returns `PgAdapterError`
-    pub async fn lease_task(&self, rn: String, worker: String) -> Result<Task, PgAdapterError> {
+    pub async fn lease_task(&self, rn: String, worker: String, task_timeout_in_secs: Option<i64>) -> Result<Task, PgAdapterError> {
         let update_task_model = UpdateTaskModel {
             rn,
             worker: Some(worker),
@@ -48,12 +48,13 @@ impl PgManager {
             progress: None,
             operation: UpdateOperation::Lease,
             error: None,
+            task_timeout_in_secs
         };
         self.update_task(&update_task_model).await
     }
     /// # Errors
     /// Returns `PgAdapterError`
-    pub async fn heartbeat_task(&self, rn: String, progress: Option<f32>) -> Result<Task, PgAdapterError> {
+    pub async fn heartbeat_task(&self, rn: String, progress: Option<f32>, task_timeout_in_secs: Option<i64>) -> Result<Task, PgAdapterError> {
         let update_task_model = UpdateTaskModel {
             rn,
             worker: None,
@@ -61,6 +62,7 @@ impl PgManager {
             progress,
             operation: UpdateOperation::HeartBeat,
             error: None,
+            task_timeout_in_secs
         };
         self.update_task(&update_task_model).await
     }
@@ -74,6 +76,7 @@ impl PgManager {
             progress: None,
             operation: UpdateOperation::Status,
             error: None,
+            task_timeout_in_secs: None
         };
         self.update_task(&update_task_model).await
     }
@@ -87,6 +90,7 @@ impl PgManager {
             progress: None,
             operation: UpdateOperation::Status,
             error: None,
+            task_timeout_in_secs: None
         };
         self.update_task(&update_task_model).await
     }
@@ -100,6 +104,7 @@ impl PgManager {
             progress: None,
             operation: UpdateOperation::Status,
             error: Some(error),
+            task_timeout_in_secs: None
         };
         self.update_task(&update_task_model).await
     }
@@ -113,6 +118,7 @@ impl PgManager {
             progress: None,
             operation: UpdateOperation::Yield,
             error: None,
+            task_timeout_in_secs: None
         };
         self.update_task(&update_task_model).await
     }
@@ -126,6 +132,7 @@ impl PgManager {
             progress: None,
             operation: UpdateOperation::Reset,
             error: None,
+            task_timeout_in_secs: None
         };
         self.update_task(&update_task_model).await
     }

@@ -16,7 +16,7 @@ async fn get_running_tasks() {
     };
     pgm.insert_task(atm).await.unwrap();
 
-    pgm.lease_task("add_test_1".to_string(), "worker".to_string()).await.unwrap();
+    pgm.lease_task("add_test_1".to_string(), "worker".to_string(), None).await.unwrap();
 
     let gtm = GetTaskModel {
         status: Some(TaskStatus::Running),
@@ -75,7 +75,7 @@ async fn get_completed_tasks() {
         spec: serde_json::from_str("{\"a\":\"b\"}").unwrap(),
     };
     pgm.insert_task(atm).await.unwrap();
-    pgm.lease_task("add_test_1".to_string(), "worker".to_string()).await.unwrap();
+    pgm.lease_task("add_test_1".to_string(), "worker".to_string(), None).await.unwrap();
     pgm.complete_task("add_test_1".to_string()).await.unwrap();
 
     let gtm = GetTaskModel {
@@ -150,7 +150,7 @@ async fn get_aborted_tasks() {
     };
     assert_eq!(pgm.fetch_tasks(gtm_0).await.unwrap().len(), 0);
     pgm.insert_task(atm).await.unwrap();
-    pgm.lease_task("add_test_1".to_string(), "worker".to_string()).await.unwrap();
+    pgm.lease_task("add_test_1".to_string(), "worker".to_string(), None).await.unwrap();
     pgm.abort_task(
         "add_test_1".to_string(),
         TaskError {
@@ -205,8 +205,8 @@ async fn get_worker_tasks() {
         limit: None,
     };
     assert_eq!(pgm.fetch_tasks(gtm_1).await.unwrap().len(), 0);
-    pgm.lease_task("add_test_1".to_string(), "worker".to_string()).await.unwrap();
-    pgm.lease_task("add_test_2".to_string(), "worker".to_string()).await.unwrap();
+    pgm.lease_task("add_test_1".to_string(), "worker".to_string(), None).await.unwrap();
+    pgm.lease_task("add_test_2".to_string(), "worker".to_string(), None).await.unwrap();
     let gtm_2 = GetTaskModel {
         status: None,
         worker: Some("worker".to_string()),

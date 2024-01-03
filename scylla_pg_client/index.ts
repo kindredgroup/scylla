@@ -94,13 +94,13 @@ class Scylla {
     return JSON.parse(response);
   }
 
-  public async leaseTask(rn: string, worker: string): Promise<Task> {
-    let response = await this.scyllaManager.leaseTask(rn, worker);
+  public async leaseTask(rn: string, worker: string, taskTimeOutInSecs?: number): Promise<Task> {
+    let response = await this.scyllaManager.leaseTask(rn, worker, taskTimeOutInSecs);
     return JSON.parse(response);
   }
 
-  public async heartBeatTask(rn: string, progress?: number): Promise<Task> {
-    let response = await this.scyllaManager.heartBeatTask(rn, progress);
+  public async heartBeatTask(rn: string, progress?: number, taskTimeOutInSecs?: number): Promise<Task> {
+    let response = await this.scyllaManager.heartBeatTask(rn, progress, taskTimeOutInSecs);
     return JSON.parse(response);
   }
 

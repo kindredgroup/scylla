@@ -91,8 +91,8 @@ impl ScyllaManager {
     /// # Errors
     /// Convert rust error into `napi::Error`
     #[napi]
-    pub async fn lease_task(&self, rn: String, worker: String) -> napi::Result<String> {
-        let task_result = self.pg_manager.lease_task(rn, worker).await;
+    pub async fn lease_task(&self, rn: String, worker: String, task_timeout_in_secs: Option<i64>) -> napi::Result<String> {
+        let task_result = self.pg_manager.lease_task(rn, worker, task_timeout_in_secs).await;
         map_lib_response!(task_result)
     }
     /// # Errors
@@ -132,12 +132,12 @@ impl ScyllaManager {
     /// # Errors
     /// Convert rust error into `napi::Error`
     #[napi]
-    pub async fn heart_beat_task(&self, rn: String, progress: Option<f64>) -> napi::Result<String> {
+    pub async fn heart_beat_task(&self, rn: String, progress: Option<f64>, task_timeout_in_secs: Option<i64>) -> napi::Result<String> {
         let mut progress_value = None;
         if let Some(p) = progress {
             progress_value = Some(p as f32);
         }
-        let task_result = self.pg_manager.heartbeat_task(rn, progress_value).await;
+        let task_result = self.pg_manager.heartbeat_task(rn, progress_value, task_timeout_in_secs).await;
         map_lib_response!(task_result)
     }
 }

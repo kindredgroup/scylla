@@ -87,6 +87,9 @@ test.unit:
 test.component:
 	$(call pp,rust component tests...)
 	cargo test -- --include-ignored --test-threads 1
+test.component.lib:
+	$(call pp,rust component tests...)
+	cd scylla_pg_js && npm run build && npm run test
 
 test.nightly:
 	$(call pp,rust test.nightly...)

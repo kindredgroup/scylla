@@ -33,6 +33,9 @@ jobs:
       - name: component test
         run: make withenv RECIPE=test.component
 
+      - name: component test lib
+        run: make withenv RECIPE=test.component.lib
+
       - run: cargo test --examples
       - run: cargo doc --no-deps
 

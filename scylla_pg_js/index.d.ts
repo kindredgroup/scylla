@@ -52,7 +52,7 @@ export class ScyllaManager {
    * # Errors
    * Convert rust error into `napi::Error`
    */
-  leaseTask(rn: string, worker: string): Promise<string>
+  leaseTask(rn: string, worker: string, taskTimeoutInSecs?: number | undefined | null): Promise<string>
   /**
    * # Errors
    * Convert rust error into `napi::Error`
@@ -77,5 +77,5 @@ export class ScyllaManager {
    * # Errors
    * Convert rust error into `napi::Error`
    */
-  heartBeatTask(rn: string, progress?: number | undefined | null): Promise<string>
+  heartBeatTask(rn: string, progress?: number | undefined | null, taskTimeoutInSecs?: number | undefined | null): Promise<string>
 }

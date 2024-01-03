@@ -81,9 +81,9 @@ fn validate_heart_beat_operation(task: &Task) -> Result<(), ScyllaOperationsErro
     }
 }
 
-fn prepare_heart_beat_task(mut task: Task, update_task_model: &UpdateTaskModel, task_time_out_in_secs: Duration) -> Task {
+fn prepare_heart_beat_task(mut task: Task, update_task_model: &UpdateTaskModel) -> Task {
     task.updated = Utc::now();
-    task.deadline = Some(Utc::now() + task_time_out_in_secs);
+    task.deadline = Some(Utc::now() + Duration::seconds(update_task_model.task_timeout_in_secs.unwrap_or(10)));
     if let Some(progress) = update_task_model.progress {
         task.progress = progress;
     }
@@ -105,7 +105,7 @@ fn validate_lease_operation(task: &Task, update_task_model: &UpdateTaskModel) ->
     }
 }
 
-fn prepare_lease_task(mut task: Task, update_task_model: &UpdateTaskModel, task_time_out_in_secs: Duration) -> Task {
+fn prepare_lease_task(mut task: Task, update_task_model: &UpdateTaskModel) -> Task {
     let task_assignment_history = TaskHistory {
         typ: TaskHistoryType::Assignment,
         time: Utc::now(),
@@ -115,7 +115,7 @@ fn prepare_lease_task(mut task: Task, update_task_model: &UpdateTaskModel, task_
     task.updated = Utc::now();
     task.status = TaskStatus::Running;
     task.owner = update_task_model.worker.clone();
-    task.deadline = Some(Utc::now() + task_time_out_in_secs);
+    task.deadline = Some(Utc::now() + Duration::seconds(update_task_model.task_timeout_in_secs.unwrap_or(10)));
 
     task.history.push(task_assignment_history);
     task
@@ -188,7 +188,7 @@ fn prepare_reset_task(mut task: Task) -> Task {
 ///  # Errors
 /// Returns `ScyllaOperationsError` in case of invalid data.
 
-pub fn request_handler(task: Task, update_task_model: &UpdateTaskModel, task_time_out_in_secs: Duration) -> Result<Task, ScyllaOperationsError> {
+pub fn request_handler(task: Task, update_task_model: &UpdateTaskModel) -> Result<Task, ScyllaOperationsError> {
     match update_task_model.operation {
         UpdateOperation::Status => {
             validate_status_operation(&task, update_task_model)?;
@@ -196,7 +196,7 @@ pub fn request_handler(task: Task, update_task_model: &UpdateTaskModel, task_tim
         }
         UpdateOperation::HeartBeat => {
             validate_heart_beat_operation(&task)?;
-            Ok(prepare_heart_beat_task(task, update_task_model, task_time_out_in_secs))
+            Ok(prepare_heart_beat_task(task, update_task_model))
         }
         UpdateOperation::Yield => {
             validate_yield_operation(&task)?;
@@ -204,7 +204,7 @@ pub fn request_handler(task: Task, update_task_model: &UpdateTaskModel, task_tim
         }
         UpdateOperation::Lease => {
             validate_lease_operation(&task, update_task_model)?;
-            Ok(prepare_lease_task(task, update_task_model, task_time_out_in_secs))
+            Ok(prepare_lease_task(task, update_task_model))
         }
         UpdateOperation::Reset => {
             validate_reset_operation(&task)?;

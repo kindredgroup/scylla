@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/kindredgroup/scylla#readme",
   "dependencies": {
-    "scylla_pg_client": "0.1.4"
+    "scylla_pg_client": "0.1.14"
   },
   "devDependencies": {
     "@types/node": "^20.4.1",

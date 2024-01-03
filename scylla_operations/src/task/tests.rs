@@ -1,3 +1,4 @@
+use chrono::{Duration, Utc};
 // $coverage:ignore-start
 use crate::task::{AddTaskModel, ScyllaOperations, ScyllaOperationsError};
 use scylla_models::{Task, TaskStatus, UpdateOperation, UpdateTaskModel};
@@ -32,6 +33,7 @@ fn update_task_calls_get_and_update() {
         worker: Some("worker1".to_string()),
         error: None,
         progress: None,
+        task_timeout_in_secs: None,
     };
     let task_to_update = Task {
         rn: "unique_id".to_string(),
@@ -42,6 +44,7 @@ fn update_task_calls_get_and_update() {
     assert_eq!(task.rn, "unique_id".to_string());
     assert_eq!(task.status, TaskStatus::Running);
     assert_eq!(task.owner, Some("worker1".to_string()));
+    assert!(task.deadline.unwrap() < Utc::now() + Duration::seconds(11))
 }
 
 #[test]
@@ -58,6 +61,7 @@ fn update_task_returns_scylla_op_error() {
         worker: None,
         error: None,
         progress: None,
+        task_timeout_in_secs: None,
     };
 
     assert_eq!(

@@ -20,7 +20,7 @@ impl ScyllaOperations {
     /// # Errors
     /// Returns `ScyllaOperationsError`
     pub fn update_task_operation(update_task_model: &UpdateTaskModel, task_to_update: Task) -> Result<Task, ScyllaOperationsError> {
-        request_handler(task_to_update, update_task_model, Duration::seconds(1))
+        request_handler(task_to_update, update_task_model)
     }
 }
 #[async_trait]

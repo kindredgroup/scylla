@@ -116,7 +116,7 @@ async fn pg_manager_mock_adapter() {
         "add".to_string()
     );
     // update cases
-    assert_eq!(pgm.lease_task("2".to_string(), "w".to_string()).await.unwrap().rn, "update".to_string());
+    assert_eq!(pgm.lease_task("2".to_string(), "w".to_string(), None).await.unwrap().rn, "update".to_string());
     assert_eq!(pgm.cancel_task("2".to_string()).await.unwrap().rn, "update".to_string());
 
     //heartbeat
@@ -137,7 +137,7 @@ async fn pg_manager_mock_adapter() {
             })
         });
     let pgm = PgManager { pg_adapter: Box::new(mock) };
-    assert_eq!(pgm.heartbeat_task("2".to_string(), None).await.unwrap().rn, "update".to_string());
+    assert_eq!(pgm.heartbeat_task("2".to_string(), None, Some(5)).await.unwrap().rn, "update".to_string());
     assert_eq!(pgm.complete_task("2".to_string()).await.unwrap().rn, "update".to_string());
     assert_eq!(
         pgm.abort_task(

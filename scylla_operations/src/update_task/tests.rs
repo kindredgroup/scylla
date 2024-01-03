@@ -14,6 +14,7 @@ fn validate_status_failure_scenarios() {
         error: None,
         worker: None,
         progress: None,
+        task_timeout_in_secs: None,
     };
 
     assert_eq!(
@@ -29,6 +30,7 @@ fn validate_status_failure_scenarios() {
         error: None,
         worker: None,
         progress: None,
+        task_timeout_in_secs: None,
     };
     let utm_running_status = UpdateTaskModel {
         operation: UpdateOperation::Status,
@@ -37,6 +39,7 @@ fn validate_status_failure_scenarios() {
         error: None,
         worker: None,
         progress: None,
+        task_timeout_in_secs: None,
     };
     let utm_completed_status = UpdateTaskModel {
         operation: UpdateOperation::Status,
@@ -45,6 +48,7 @@ fn validate_status_failure_scenarios() {
         error: None,
         worker: None,
         progress: None,
+        task_timeout_in_secs: None,
     };
     let t_ready = Task {
         status: TaskStatus::Ready,
@@ -72,6 +76,7 @@ fn validate_status_failure_scenarios() {
         error: None,
         worker: None,
         progress: None,
+        task_timeout_in_secs: None,
     };
     let t_running = Task {
         status: TaskStatus::Running,
@@ -94,6 +99,7 @@ fn validate_status_failure_scenarios() {
         error: None,
         worker: None,
         progress: None,
+        task_timeout_in_secs: None,
     };
     let t_aborted = Task {
         status: TaskStatus::Aborted,
@@ -138,6 +144,7 @@ fn validate_status_failure_scenarios() {
         error: None,
         worker: None,
         progress: None,
+        task_timeout_in_secs: None,
     };
     let t_running = Task {
         status: TaskStatus::Running,
@@ -160,6 +167,7 @@ fn validate_state_success_scenarios() {
         error: None,
         worker: None,
         progress: None,
+        task_timeout_in_secs: None,
     };
     let t_ready = Task {
         status: TaskStatus::Ready,
@@ -177,6 +185,7 @@ fn validate_state_success_scenarios() {
         error: None,
         worker: None,
         progress: None,
+        task_timeout_in_secs: None,
     };
     let utm_completed_status = UpdateTaskModel {
         operation: UpdateOperation::Status,
@@ -185,6 +194,7 @@ fn validate_state_success_scenarios() {
         error: None,
         worker: None,
         progress: None,
+        task_timeout_in_secs: None,
     };
     let utm_aborted_status = UpdateTaskModel {
         operation: UpdateOperation::Status,
@@ -197,6 +207,7 @@ fn validate_state_success_scenarios() {
         }),
         worker: None,
         progress: None,
+        task_timeout_in_secs: None,
     };
     let t_running = Task {
         status: TaskStatus::Running,
@@ -225,6 +236,7 @@ fn prepare_status_task_cases() {
         }),
         worker: None,
         progress: None,
+        task_timeout_in_secs: None,
     };
     let task = Task {
         errors: vec![TaskError {
@@ -253,6 +265,7 @@ fn prepare_status_task_cases() {
         }),
         worker: None,
         progress: None,
+        task_timeout_in_secs: None,
     };
     let task = Task {
         errors: vec![TaskError {
@@ -416,6 +429,7 @@ fn prepare_heart_beat_task_cases() {
         error: None,
         progress: None,
         worker: None,
+        task_timeout_in_secs: None,
     };
     let task_2 = Task::default();
     let utm_with_progress = UpdateTaskModel {
@@ -425,13 +439,14 @@ fn prepare_heart_beat_task_cases() {
         error: None,
         progress: Some(0.5),
         worker: None,
+        task_timeout_in_secs: Some(10),
     };
-    let prepared_task = prepare_heart_beat_task(task_1, &utm_without_progress, Duration::seconds(10));
+    let prepared_task = prepare_heart_beat_task(task_1, &utm_without_progress);
     // just updated
     assert!(Utc::now() - prepared_task.updated < Duration::milliseconds(1));
     assert!(prepared_task.deadline.unwrap() - Duration::seconds(10) - Utc::now() < Duration::milliseconds(1));
     assert_eq!(prepared_task.progress, 0.0);
-    let prepared_task = prepare_heart_beat_task(task_2, &utm_with_progress, Duration::seconds(10));
+    let prepared_task = prepare_heart_beat_task(task_2, &utm_with_progress);
     // just updated
     assert!(Utc::now() - prepared_task.updated < Duration::milliseconds(1));
     assert!(prepared_task.deadline.unwrap() - Duration::seconds(10) - Utc::now() < Duration::milliseconds(1));
@@ -470,6 +485,7 @@ fn validate_lease_operation_cases() {
         error: None,
         progress: None,
         worker: Some("worker".to_string()),
+        task_timeout_in_secs: None,
     };
     let utm_without_worker = UpdateTaskModel {
         operation: UpdateOperation::Lease,
@@ -478,6 +494,7 @@ fn validate_lease_operation_cases() {
         error: None,
         progress: None,
         worker: None,
+        task_timeout_in_secs: None,
     };
     assert_eq!(
         validate_lease_operation(&t_running, &utm_without_worker),
@@ -529,6 +546,7 @@ fn prepare_lease_task_cases() {
         error: None,
         progress: None,
         worker: Some("worker".to_string()),
+        task_timeout_in_secs: None,
     };
     let t = Task {
         status: TaskStatus::Ready,
@@ -540,7 +558,7 @@ fn prepare_lease_task_cases() {
         }],
         ..Task::default()
     };
-    let prepared_task = prepare_lease_task(t, &utm, Duration::seconds(10));
+    let prepared_task = prepare_lease_task(t, &utm);
     assert!(Utc::now() - prepared_task.updated < Duration::milliseconds(1));
     assert_eq!(prepared_task.status, TaskStatus::Running);
     assert_eq!(prepared_task.owner.unwrap(), "worker".to_string());
@@ -708,8 +726,9 @@ fn request_handler_cases() {
         error: None,
         progress: None,
         status: None,
+        task_timeout_in_secs: None,
     };
-    let updated_task = request_handler(t, &utm, Duration::seconds(10)).unwrap();
+    let updated_task = request_handler(t, &utm).unwrap();
     assert_eq!(updated_task.status, TaskStatus::Running);
     assert_eq!(updated_task.owner, Some("worker1".to_string()));
     /*********************************/
@@ -727,8 +746,9 @@ fn request_handler_cases() {
         error: None,
         progress: None,
         status: None,
+        task_timeout_in_secs: None,
     };
-    let updated_task = request_handler(t, &utm, Duration::seconds(10)).unwrap();
+    let updated_task = request_handler(t, &utm).unwrap();
     assert_eq!(updated_task.status, TaskStatus::Ready);
     assert_eq!(updated_task.owner, None);
     assert_eq!(updated_task.deadline, None);
@@ -747,8 +767,9 @@ fn request_handler_cases() {
         error: None,
         progress: None,
         status: None,
+        task_timeout_in_secs: None,
     };
-    let updated_task = request_handler(t, &utm, Duration::seconds(10)).unwrap();
+    let updated_task = request_handler(t, &utm).unwrap();
     assert_eq!(updated_task.status, TaskStatus::Running);
     assert_eq!(updated_task.owner, Some("worker1".to_string()));
     assert!(Utc::now() - updated_task.deadline.unwrap() > Duration::milliseconds(1));
@@ -767,12 +788,13 @@ fn request_handler_cases() {
         error: None,
         progress: Some(0.7),
         status: None,
+        task_timeout_in_secs: Some(5),
     };
-    let updated_task = request_handler(t, &utm, Duration::seconds(10)).unwrap();
+    let updated_task = request_handler(t, &utm).unwrap();
     assert_eq!(updated_task.status, TaskStatus::Running);
     assert_eq!(updated_task.owner, Some("worker1".to_string()));
     assert_eq!(updated_task.progress, 0.7);
-    assert!(Utc::now() + Duration::seconds(10) - updated_task.deadline.unwrap() < Duration::milliseconds(1));
+    assert!(Utc::now() + Duration::seconds(5) - updated_task.deadline.unwrap() < Duration::milliseconds(1));
     /*********************************/
     // Status operation
     let t = Task {
@@ -786,7 +808,8 @@ fn request_handler_cases() {
         error: None,
         progress: None,
         status: Some(TaskStatus::Cancelled),
+        task_timeout_in_secs: None,
     };
-    let updated_task = request_handler(t, &utm, Duration::seconds(10)).unwrap();
+    let updated_task = request_handler(t, &utm).unwrap();
     assert_eq!(updated_task.status, TaskStatus::Cancelled);
 }

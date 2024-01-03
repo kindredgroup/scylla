@@ -20,6 +20,7 @@ pub struct UpdateTaskModel {
     pub error: Option<TaskError>,
     pub worker: Option<String>,
     pub progress: Option<f32>,
+    pub task_timeout_in_secs: Option<i64>,
 }
 
 #[derive(Debug)]
@@ -175,10 +176,11 @@ mod tests {
             rn: String::from("1.2.3"),
             status: None,
             worker: None,
+            task_timeout_in_secs: None,
         };
         assert_eq!(
             format!("{:?}", utm),
-            "UpdateTaskModel { rn: \"1.2.3\", operation: HeartBeat, status: None, error: None, worker: None, progress: None }"
+            "UpdateTaskModel { rn: \"1.2.3\", operation: HeartBeat, status: None, error: None, worker: None, progress: None, task_timeout_in_secs: None }"
         );
     }
     #[test]
