@@ -1,6 +1,5 @@
 mod common;
-use scylla_models::{AddTaskModel, TaskStatus, UpdateOperation, UpdateTaskModel};
-use scylla_pg_lib::error::PgAdapterError;
+use scylla_models::AddTaskModel;
 
 #[tokio::test]
 #[ignore]

@@ -48,7 +48,7 @@ impl PgManager {
             progress: None,
             operation: UpdateOperation::Lease,
             error: None,
-            task_timeout_in_secs
+            task_timeout_in_secs,
         };
         self.update_task(&update_task_model).await
     }
@@ -62,7 +62,7 @@ impl PgManager {
             progress,
             operation: UpdateOperation::HeartBeat,
             error: None,
-            task_timeout_in_secs
+            task_timeout_in_secs,
         };
         self.update_task(&update_task_model).await
     }
@@ -76,7 +76,7 @@ impl PgManager {
             progress: None,
             operation: UpdateOperation::Status,
             error: None,
-            task_timeout_in_secs: None
+            task_timeout_in_secs: None,
         };
         self.update_task(&update_task_model).await
     }
@@ -90,7 +90,7 @@ impl PgManager {
             progress: None,
             operation: UpdateOperation::Status,
             error: None,
-            task_timeout_in_secs: None
+            task_timeout_in_secs: None,
         };
         self.update_task(&update_task_model).await
     }
@@ -104,7 +104,7 @@ impl PgManager {
             progress: None,
             operation: UpdateOperation::Status,
             error: Some(error),
-            task_timeout_in_secs: None
+            task_timeout_in_secs: None,
         };
         self.update_task(&update_task_model).await
     }
@@ -118,7 +118,7 @@ impl PgManager {
             progress: None,
             operation: UpdateOperation::Yield,
             error: None,
-            task_timeout_in_secs: None
+            task_timeout_in_secs: None,
         };
         self.update_task(&update_task_model).await
     }
@@ -132,7 +132,7 @@ impl PgManager {
             progress: None,
             operation: UpdateOperation::Reset,
             error: None,
-            task_timeout_in_secs: None
+            task_timeout_in_secs: None,
         };
         self.update_task(&update_task_model).await
     }

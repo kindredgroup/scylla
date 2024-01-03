@@ -30,16 +30,19 @@ jobs:
       - name: cargo build
         run: cargo build
 
+      - run: cargo test --examples
+      - run: cargo doc --no-deps
+
+      - run: bin/clippy-pedantic.sh
+
+      - run: cd scylla_pg_js && npm install
+
       - name: component test
         run: make withenv RECIPE=test.component
 
       - name: component test lib
         run: make withenv RECIPE=test.component.lib
 
-      - run: cargo test --examples
-      - run: cargo doc --no-deps
-
-      - run: bin/clippy-pedantic.sh
       - run: >
           if [ $(bin/is-release.sh) = "1" ]; then
               PATH=$PATH:$(pwd) bin/docker-push.sh
