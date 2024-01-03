@@ -133,11 +133,11 @@ jobs:
         run: cd scylla_pg_js && npm run artifacts
       - run: ls -R ./scylla_pg_js/npm
       - run: ls -R ./scylla_pg_js/artifacts
-      - name: setup docker container env for macos
-        run: brew install colima docker docker-compose
-
-      - name: colima start for macos
-        run: colima start
+#      - name: setup docker container env for macos
+#        run: brew install colima docker docker-compose
+#
+#      - name: colima start for macos
+#        run: colima start
 
       - name: Publish
         run: >
