@@ -219,7 +219,7 @@ mod tests {
         assert_eq!(format!("{:?}", TaskStatus::Running), "Running");
         assert_ne!(TaskStatus::Running, TaskStatus::Ready);
         assert_eq!(TaskStatus::Running.clone(), TaskStatus::Running);
-        assert_eq!(TaskStatus::Running == TaskStatus::Running, true);
+        assert!(TaskStatus::Running == TaskStatus::Running);
         assert_eq!(serde_json::to_string(&TaskStatus::Running).unwrap(), "\"running\"");
         assert_eq!(serde_json::from_str::<TaskStatus>("\"running\"").unwrap(), TaskStatus::Running);
         assert_eq!(serde_json::from_str::<TaskStatus>("\"ready\"").unwrap(), TaskStatus::Ready);
@@ -237,7 +237,7 @@ mod tests {
                 "{:?}",
                 TaskHistory {
                     progress: None,
-                    time: t_now.clone(),
+                    time: t_now,
                     typ: TaskHistoryType::Assignment,
                     worker: String::from("worker1")
                 }
@@ -247,7 +247,7 @@ mod tests {
         assert_eq!(format!("{:?}", TaskHistoryType::Assignment), "Assignment");
         assert_ne!(TaskHistoryType::Assignment, TaskHistoryType::Yield);
         assert_eq!(TaskHistoryType::Assignment.clone(), TaskHistoryType::Assignment);
-        assert_eq!(TaskHistoryType::Assignment == TaskHistoryType::Assignment, true);
+        assert!(TaskHistoryType::Assignment == TaskHistoryType::Assignment);
         assert_eq!(serde_json::to_string(&TaskHistoryType::Assignment).unwrap(), "\"TaskAssignment\"");
         assert_eq!(
             serde_json::from_str::<TaskHistoryType>("\"TaskAssignment\"").unwrap(),

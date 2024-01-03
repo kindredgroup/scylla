@@ -70,7 +70,7 @@ impl Persistence for MockPgAdapter {
 #[tokio::test]
 async fn pg_manager_mock_adapter() {
     let mock = MockPgAdapter::default()
-        .on_insert(|t| Ok(t))
+        .on_insert(Ok)
         .on_query_by_rn(|_rn| {
             Ok(Task {
                 rn: "query_by_rn".to_string(),

@@ -29,7 +29,7 @@ async fn insert_task() {
         spec: serde_json::from_str("{\"a\":\"b\"}").unwrap(),
     };
     let inserted_task_result = pgm.insert_task(atm_with_same_rn).await;
-    assert_eq!(inserted_task_result.is_err(), true);
+    assert!(inserted_task_result.is_err());
     assert_eq!(
         inserted_task_result.err().unwrap().to_string(),
         PgAdapterError::DuplicateTask("add_test_1".to_string()).to_string()

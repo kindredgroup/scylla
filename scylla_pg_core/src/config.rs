@@ -31,7 +31,6 @@ impl PGConfig {
         Config::builder().add_source(config::Environment::default()).build().unwrap().try_deserialize()
     }
 
-
     pub fn to_pg_config(&self) -> tokio_postgres::Config {
         let mut pg_config = tokio_postgres::Config::new();
         pg_config

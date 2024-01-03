@@ -342,7 +342,7 @@ fn prepare_yield_task_cases() {
     assert_eq!(prepared_task.history[0].typ, TaskHistoryType::Yield);
     assert_eq!(prepared_task.history[0].worker, "worker1".to_string());
     assert_eq!(prepared_task.history[0].progress, Some(0.4));
-    assert_eq!(prepared_task.deadline.unwrap() < Utc::now(), true);
+    assert!(prepared_task.deadline.unwrap() < Utc::now());
 }
 
 #[test]
@@ -428,19 +428,13 @@ fn prepare_heart_beat_task_cases() {
     };
     let prepared_task = prepare_heart_beat_task(task_1, &utm_without_progress, Duration::seconds(10));
     // just updated
-    assert_eq!(Utc::now() - prepared_task.updated < Duration::milliseconds(1), true);
-    assert_eq!(
-        prepared_task.deadline.unwrap() - Duration::seconds(10) - Utc::now() < Duration::milliseconds(1),
-        true
-    );
+    assert!(Utc::now() - prepared_task.updated < Duration::milliseconds(1));
+    assert!(prepared_task.deadline.unwrap() - Duration::seconds(10) - Utc::now() < Duration::milliseconds(1));
     assert_eq!(prepared_task.progress, 0.0);
     let prepared_task = prepare_heart_beat_task(task_2, &utm_with_progress, Duration::seconds(10));
     // just updated
-    assert_eq!(Utc::now() - prepared_task.updated < Duration::milliseconds(1), true);
-    assert_eq!(
-        prepared_task.deadline.unwrap() - Duration::seconds(10) - Utc::now() < Duration::milliseconds(1),
-        true
-    );
+    assert!(Utc::now() - prepared_task.updated < Duration::milliseconds(1));
+    assert!(prepared_task.deadline.unwrap() - Duration::seconds(10) - Utc::now() < Duration::milliseconds(1));
     assert_eq!(prepared_task.progress, 0.5);
 }
 
@@ -547,16 +541,13 @@ fn prepare_lease_task_cases() {
         ..Task::default()
     };
     let prepared_task = prepare_lease_task(t, &utm, Duration::seconds(10));
-    assert_eq!(Utc::now() - prepared_task.updated < Duration::milliseconds(1), true);
+    assert!(Utc::now() - prepared_task.updated < Duration::milliseconds(1));
     assert_eq!(prepared_task.status, TaskStatus::Running);
     assert_eq!(prepared_task.owner.unwrap(), "worker".to_string());
-    assert_eq!(
-        prepared_task.deadline.unwrap() - Utc::now() - Duration::seconds(10) < Duration::milliseconds(1),
-        true
-    );
+    assert!(prepared_task.deadline.unwrap() - Utc::now() - Duration::seconds(10) < Duration::milliseconds(1));
     assert_eq!(prepared_task.history.len(), 2); // history gets added and not replaced.
     assert_eq!(prepared_task.history[1].typ, TaskHistoryType::Assignment);
-    assert_eq!(Utc::now() - prepared_task.history[1].time < Duration::milliseconds(1), true);
+    assert!(Utc::now() - prepared_task.history[1].time < Duration::milliseconds(1));
     assert_eq!(prepared_task.history[1].worker, "worker".to_string());
     assert_eq!(prepared_task.history[1].progress, Some(0.0)); // initial progess set as 0.0
 }
@@ -685,11 +676,11 @@ fn prepare_reset_task_cases() {
     assert_eq!(pt.owner, None);
     assert_eq!(pt.progress, 0.0);
     assert_eq!(pt.status, TaskStatus::Ready);
-    assert_eq!(Utc::now() - pt.updated < Duration::milliseconds(1), true);
+    assert!(Utc::now() - pt.updated < Duration::milliseconds(1));
     assert_eq!(pt.history.len(), 2);
     assert_eq!(pt.history[1].typ, TaskHistoryType::Timeout);
     assert_eq!(pt.history[1].progress, Some(0.8));
-    assert_eq!(Utc::now() - pt.history[1].time < Duration::milliseconds(1), true);
+    assert!(Utc::now() - pt.history[1].time < Duration::milliseconds(1));
     assert_eq!(pt.history[1].worker, "worker2".to_string());
 
     let pt = prepare_reset_task(t_yielded);
@@ -697,7 +688,7 @@ fn prepare_reset_task_cases() {
     assert_eq!(pt.owner, None);
     assert_eq!(pt.progress, 0.0);
     assert_eq!(pt.status, TaskStatus::Ready);
-    assert_eq!(Utc::now() - pt.updated < Duration::milliseconds(1), true);
+    assert!(Utc::now() - pt.updated < Duration::milliseconds(1));
     assert_eq!(pt.history.len(), 1);
     assert_eq!(pt.history[0].typ, TaskHistoryType::Yield);
 }
@@ -760,7 +751,7 @@ fn request_handler_cases() {
     let updated_task = request_handler(t, &utm, Duration::seconds(10)).unwrap();
     assert_eq!(updated_task.status, TaskStatus::Running);
     assert_eq!(updated_task.owner, Some("worker1".to_string()));
-    assert_eq!(Utc::now() - updated_task.deadline.unwrap() > Duration::milliseconds(1), true);
+    assert!(Utc::now() - updated_task.deadline.unwrap() > Duration::milliseconds(1));
     /*********************************/
     // Heartbeat operation
     let t = Task {
@@ -781,10 +772,7 @@ fn request_handler_cases() {
     assert_eq!(updated_task.status, TaskStatus::Running);
     assert_eq!(updated_task.owner, Some("worker1".to_string()));
     assert_eq!(updated_task.progress, 0.7);
-    assert_eq!(
-        Utc::now() + Duration::seconds(10) - updated_task.deadline.unwrap() < Duration::milliseconds(1),
-        true
-    );
+    assert!(Utc::now() + Duration::seconds(10) - updated_task.deadline.unwrap() < Duration::milliseconds(1));
     /*********************************/
     // Status operation
     let t = Task {

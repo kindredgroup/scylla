@@ -45,14 +45,13 @@ fn prepare_status_task(mut task: Task, update_task_model: &UpdateTaskModel) -> T
 /// Returns `ScyllaOperationsError`
 fn validate_yield_operation(task: &Task) -> Result<(), ScyllaOperationsError> {
     if task.status == TaskStatus::Running {
-      Ok(())
+        Ok(())
     } else {
-      Err(ScyllaOperationsError::InvalidOperation(
-        UpdateOperation::Yield,
-        TaskStatus::Running,
-        task.status.clone(),
-      ))
-
+        Err(ScyllaOperationsError::InvalidOperation(
+            UpdateOperation::Yield,
+            TaskStatus::Running,
+            task.status.clone(),
+        ))
     }
 }
 
@@ -72,13 +71,13 @@ fn prepare_yield_task(mut task: Task) -> Task {
 /// Returns `ScyllaOperationsError`
 fn validate_heart_beat_operation(task: &Task) -> Result<(), ScyllaOperationsError> {
     if task.status == TaskStatus::Running {
-      Ok(())
+        Ok(())
     } else {
-      Err(ScyllaOperationsError::InvalidOperation(
-        UpdateOperation::HeartBeat,
-        TaskStatus::Running,
-        task.status.clone(),
-      ))
+        Err(ScyllaOperationsError::InvalidOperation(
+            UpdateOperation::HeartBeat,
+            TaskStatus::Running,
+            task.status.clone(),
+        ))
     }
 }
 

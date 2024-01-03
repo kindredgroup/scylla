@@ -88,7 +88,7 @@ mod tests {
             ..Task::default()
         };
 
-        assert_eq!(handle_insert_return(&vec![], &original_task).is_err(), true);
+        assert!(handle_insert_return(&vec![], &original_task).is_err());
         assert_eq!(
             handle_insert_return(&vec![], &original_task).unwrap_err().to_string(),
             PgAdapterError::DuplicateTask(original_task.rn.to_owned()).to_string()
@@ -119,7 +119,7 @@ mod tests {
             status: scylla_models::TaskStatus::Running,
             ..Task::default()
         };
-        handle_insert_return(&vec![ret_t.clone(), ret_t1.clone()], &original_task).unwrap();
+        handle_insert_return(&vec![ret_t, ret_t1], &original_task).unwrap();
     }
 
     #[test]
@@ -145,7 +145,7 @@ mod tests {
         };
         let empty_vec = Vec::new();
         let resp = handle_update_return(&empty_vec, &original_t);
-        assert_eq!(resp.is_err(), true);
+        assert!(resp.is_err());
         assert_eq!(resp.unwrap_err().to_string(), PgAdapterError::NoTaskFound(original_t.rn.to_owned()).to_string());
         let ret_t = Task {
             rn: "123".to_string(),
@@ -172,7 +172,7 @@ mod tests {
             status: scylla_models::TaskStatus::Running,
             ..Task::default()
         };
-        handle_update_return(&vec![ret_t.clone(), ret_t1.clone()], &original_task).unwrap();
+        handle_update_return(&vec![ret_t, ret_t1], &original_task).unwrap();
     }
 
     #[test]
@@ -217,15 +217,15 @@ mod tests {
             ..Task::default()
         };
         let empty_vec = Vec::new();
-        let resp = handle_query_by_rn_return(&empty_vec, &original_t.rn.clone());
-        assert_eq!(resp.is_err(), true);
+        let resp = handle_query_by_rn_return(&empty_vec, &original_t.rn);
+        assert!(resp.is_err());
         assert_eq!(resp.unwrap_err().to_string(), PgAdapterError::NoTaskFound(original_t.rn.to_owned()).to_string());
         let ret_t = Task {
             rn: "123".to_string(),
             status: TaskStatus::Running,
             ..Task::default()
         };
-        assert_eq!(*handle_query_by_rn_return(&vec![ret_t.clone()], &original_t.rn.clone()).unwrap(), ret_t)
+        assert_eq!(*handle_query_by_rn_return(&vec![ret_t.clone()], &original_t.rn).unwrap(), ret_t)
     }
 
     #[test]
@@ -245,6 +245,6 @@ mod tests {
             status: scylla_models::TaskStatus::Running,
             ..Task::default()
         };
-        handle_query_by_rn_return(&vec![ret_t.clone(), ret_t1], &original_task.rn.clone()).unwrap();
+        handle_query_by_rn_return(&vec![ret_t, ret_t1], &original_task.rn).unwrap();
     }
 }

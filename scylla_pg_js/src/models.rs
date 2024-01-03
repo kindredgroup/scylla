@@ -1,7 +1,6 @@
 // $coverage:ignore-start
 use napi_derive::napi;
 
-
 #[napi(object)]
 pub struct JsAddTaskModel {
     pub rn: String,
