@@ -1,5 +1,5 @@
 # workflow_call to build the rust app
-name: build
+name: rust_build_and_test
 
 on: workflow_call
 
