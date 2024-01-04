@@ -9,11 +9,11 @@ function get_singleton_manager() {
   }
 
   let sc = ScyllaManager.initPgConfig({
-    pgHost: "127.0.0.1",
-    pgPort: 5432,
-    pgUser: "postgres",
-    pgPassword: "admin",
-    pgDatabase: "scylla"
+    pgHost: process.env["PG_HOST"],
+    pgPort: parseInt(process.env["PG_PORT"]),
+    pgUser: process.env["PG_USER"],
+    pgPassword: process.env["PG_PASSWORD"],
+    pgDatabase: process.env["PG_DATABASE"]
   })
   root_sc = sc;
   return root_sc;
