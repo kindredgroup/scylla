@@ -80,6 +80,11 @@ jobs:
         run: docker-compose up -d
         if: ${{ matrix.settings.host != 'windows-latest' }}
 
+      - name: Sleep for 10s
+        uses: juliangruber/sleep-action@v2.0.0
+        with:
+          time: 10s
+
       - name: Run Migrations
         run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
         if: ${{ matrix.settings.host != 'windows-latest' }}
@@ -118,7 +123,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
           check-latest: true
       - name: Install dependencies
         run: cd scylla_pg_js && npm install
