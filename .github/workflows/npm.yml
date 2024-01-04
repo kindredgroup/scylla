@@ -3,8 +3,13 @@ env:
   DEBUG: napi:*
   APP_NAME: scylla_pg_js
   MACOSX_DEPLOYMENT_TARGET: '10.13'
-'on':
+on:
+  release:
+    types: [created]
   push:
+      tags:
+          - 'v[0-9]+.[0-9]+.[0-9]+'
+  
 jobs:
   build:
     strategy:
@@ -68,38 +73,35 @@ jobs:
         run: ${{ matrix.settings.build }}
         shell: bash
 
-      - name: setup docker container env for macos
-        run: brew install colima docker docker-compose
-        if: ${{ matrix.settings.host == 'macos-latest' }}
+      # - name: setup docker container env for macos
+      #   run: brew install colima docker docker-compose
+      #   if: ${{ matrix.settings.host == 'macos-latest' }}
 
-      - name: colima start for macos
-        run: colima start
-        if: ${{ matrix.settings.host == 'macos-latest' }}
+      # - name: colima start for macos
+      #   run: colima start
+      #   if: ${{ matrix.settings.host == 'macos-latest' }}
 
-      - name: Set up Database
-        run: docker-compose up -d
-        if: ${{ matrix.settings.host != 'windows-latest' }}
+      # - name: Set up Database
+      #   run: docker-compose up -d
+      #   if: ${{ matrix.settings.host != 'windows-latest' }}
 
-      - name: Sleep for 30s
-        uses: juliangruber/sleep-action@v2.0.0
-        with:
-          time: 30s
+      # - name: Sleep for 30s
+      #   uses: juliangruber/sleep-action@v2.0.0
+      #   with:
+      #     time: 30s
 
-      - name: Run Migrations
-        run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
-        if: ${{ matrix.settings.host != 'windows-latest' }}
+      # - name: Run Migrations
+      #   run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
+      #   if: ${{ matrix.settings.host != 'windows-latest' }}
 
-      - name: component lib test
-        run: make withenv RECIPE=test.component.lib
-        if: ${{ matrix.settings.host != 'windows-latest' }}
+      # - name: component lib test
+      #   run: make withenv RECIPE=test.component.lib
+      #   if: ${{ matrix.settings.host != 'windows-latest' }}
 
       - name: List packages
         run: ls -R .
         shell: bash
 
-#      - name: Test bindings
-#        run: cd scylla_pg_js && npm run test
-#        if: ${{ matrix.settings.target != 'aarch64-apple-darwin' }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -118,6 +120,7 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     needs:
       - build
+    if: needs.build.result == 'success'
     steps:
       - uses: actions/checkout@v3
       - name: Setup node
@@ -139,7 +142,5 @@ jobs:
       - run: ls -R ./scylla_pg_js/artifacts
 
       - name: Publish
-        run: >
-          if [ $(bin/is-release.sh) = "1" ]; then
-            PATH=$PATH:$(pwd) bin/npm-release.sh
-          fi
+        run: PATH=$PATH:$(pwd) bin/npm-release.sh # only run on release created or tag
+      

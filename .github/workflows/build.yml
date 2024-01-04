@@ -3,7 +3,9 @@ name: build
 on: push
 
 jobs:
-  build:
+  rust_build:
+    uses: ./.github/workflows/rust_build.yml
+  npm_build:
     runs-on: ubuntu-latest
     environment: publish
     env:
@@ -12,38 +14,24 @@ jobs:
       DOCKER_HUB_USER:  ${{ secrets.DOCKER_HUB_USER }}
       NPM_TOKEN:  ${{ secrets.NPM_TOKEN }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@1.75.0
-        with:
-          toolchain: stable
       - name: Setup node
         uses: actions/setup-node@v3
         with:
           node-version: 18
           check-latest: true
+      
       - name: Set up Database
-        run: docker-compose up -d
+        run: PATH=$PATH:$(pwd) docker-compose up -d
 
       - name: Run Migrations
         run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
 
-      - name: cargo build
-        run: cargo build
-
-      - run: cargo test --examples
-      - run: cargo doc --no-deps
-
-      - run: bin/clippy-pedantic.sh
-
       - run: cd scylla_pg_js && npm install
-
-      - name: component test
-        run: make withenv RECIPE=test.component
 
       - name: component test lib
         run: make withenv RECIPE=test.component.lib
 
-      - run: >
-          if [ $(bin/is-release.sh) = "1" ]; then
-              PATH=$PATH:$(pwd) bin/docker-push.sh
-          fi
+      # - run: >
+      #     if [ $(bin/is-release.sh) = "1" ]; then
+      #         PATH=$PATH:$(pwd) bin/docker-push.sh
+      #     fi
