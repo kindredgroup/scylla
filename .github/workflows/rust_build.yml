@@ -1,0 +1,28 @@
+# workflow_call to build the rust app
+name: rust_build_and_test
+
+on: workflow_call
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@1.75.0
+        with:
+          toolchain: stable
+      - run: bin/ubuntu-setup.sh
+      - run: rustup component add rustfmt clippy
+      - name: cargo build
+        run: |
+            cargo clean
+            cargo build --release
+      - run: bin/pre-commit-checks.sh
+      - name: Set up Database
+        run: docker-compose up -d
+
+      - name: Run Migrations
+        run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
+
+      - name: Component Tests
+        run: make withenv RECIPE=test.component

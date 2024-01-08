@@ -57,7 +57,7 @@ bundle:
 ## dev.run: 🧪 Runs rust app in watch mode
 dev.run:
 	$(call pp,run app...)
-	cargo  watch -q -c -x 'run --bin pg_monitor'
+	cargo  watch -q -c -x 'run --bin scylla_pg_monitor'
 ## run: 🧪 Runs rust app
 pg.monitor:
 	$(call pp,run app...)

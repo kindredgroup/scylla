@@ -1,0 +1,26 @@
+# workflow_call to build the rust app
+name: npm_build_and_test
+
+on: workflow_call
+
+jobs:
+   build:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+
+        - name: Setup node
+          uses: actions/setup-node@v3
+          with:
+            node-version: 18
+            check-latest: true
+        - name: Set up Database
+          run: |
+            echo $(pwd)
+            ls -la
+            docker-compose up -d
+        - name: Run Migrations
+          run: PATH=$PATH:$(pwd) bin/component-test-setup.sh
+        - run: cd scylla_pg_js && npm install
+        - name: component test lib
+          run: make withenv RECIPE=test.component.lib
