@@ -125,7 +125,6 @@ impl Persistence for PgAdapter {
 
     async fn delete_batch(&self, retention_time_in_secs: i64) -> Result<u64, Self::PersistenceError> {
         let deletion_time = format!("{:?}", Utc::now() - Duration::seconds(retention_time_in_secs));
-        println!("deletion_time.to_string() {}", deletion_time);
         self.execute_count(DELETE_BATCH_TASK_SQL, &[&deletion_time]).await
     }
 }

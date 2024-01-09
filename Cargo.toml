@@ -7,3 +7,12 @@ members = [
   "scylla_pg_js",
   "scylla_pg_core"
 ]
+
+[workspace.dependencies]
+
+log = { version = "0.4", features = [
+  "kv_unstable",
+  "std",
+  "kv_unstable_serde",
+] }
+env_logger = "0.10"

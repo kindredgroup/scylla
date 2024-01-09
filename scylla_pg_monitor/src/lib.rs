@@ -16,8 +16,8 @@ use utils::filter_expired_tasks;
 fn handle_insert_return(res: &HashMap<String, Result<Task, PgAdapterError>>) {
     for (rn, task_res) in res {
         match task_res {
-            Ok(_) => println!("task with {rn} has been reset to ready state "),
-            Err(e) => eprintln!("task with {rn} in reset failed to reset because of error: {e:?}"),
+            Ok(_) => log::debug!("task with {rn} has been reset to ready state "),
+            Err(e) => log::error!("task with {rn} in reset failed to reset because of error: {e:?}"),
         }
     }
 }
@@ -40,8 +40,8 @@ pub async fn monitor_tasks() {
         tokio::time::sleep(Duration::from_secs(pg_monitor_config.poll_interval)).await;
         reset_tasks(&pgm).await;
         match pgm.delete_terminated_tasks(pg_monitor_config.task_retention_time).await {
-            Ok(count) => println!("tasks deleted: {count}"),
-            Err(e) => println!("error occured while deleting terminated tasks {e}"),
+            Ok(count) => log::info!("tasks deleted: {count}"),
+            Err(e) => log::error!("error occured while deleting terminated tasks {e}"),
         };
     }
 }
@@ -56,6 +56,6 @@ async fn reset_tasks(pgm: &PgManager) {
             }
             handle_insert_return(&res);
         }
-        Err(e) => eprintln!("error e {e:?}"),
+        Err(e) => log::error!("error e {e:?}"),
     }
 }
