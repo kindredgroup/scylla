@@ -53,6 +53,7 @@ export class ScyllaManager {
    * Convert rust error into `napi::Error`
    */
   leaseTask(rn: string, worker: string, taskTimeoutInSecs?: number | undefined | null): Promise<string>
+  leaseNTasks(queue: string, limit: number, worker: string, taskTimeoutInSecs?: number | undefined | null): Promise<string>
   /**
    * # Errors
    * Convert rust error into `napi::Error`

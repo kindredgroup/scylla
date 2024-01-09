@@ -95,6 +95,12 @@ impl ScyllaManager {
         let task_result = self.pg_manager.lease_task(rn, worker, task_timeout_in_secs).await;
         map_lib_response!(task_result)
     }
+
+    #[napi]
+    pub async fn lease_n_tasks(&self, queue: String, limit: i32, worker: String, task_timeout_in_secs: Option<i64>) -> napi::Result<String> {
+        let task_result = self.pg_manager.lease_n_tasks(queue, limit, worker, task_timeout_in_secs).await;
+        map_lib_response!(task_result)
+    }
     /// # Errors
     /// Convert rust error into `napi::Error`
     #[napi]
@@ -120,7 +126,7 @@ impl ScyllaManager {
     /// Convert rust error into `napi::Error`
     #[napi]
     pub async fn abort_task(&self, rn: String, js_error: JsTaskError) -> napi::Result<String> {
-        let error_args = validate_json(js_error.args.as_str(), "errors.args")?;
+        let error_args = validate_json(js_error.args.as_str(), "args")?;
         let task_error = TaskError {
             code: js_error.code,
             args: error_args,

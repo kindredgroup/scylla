@@ -1,7 +1,10 @@
 // $coverage:ignore-start
 //! Ignored from coverage because of real database interactions. covered as part of component tests
+mod config;
+pub mod env;
 mod utils;
 
+use crate::config::PGMonitorConfig;
 use scylla_models::{GetTaskModel, Task, TaskStatus};
 use scylla_pg_core::config::PGConfig;
 use scylla_pg_lib::error::PgAdapterError;
@@ -32,9 +35,14 @@ fn get_running_query_model() -> GetTaskModel {
 /// In case invalid env config is passed.
 pub async fn monitor_tasks() {
     let pgm = PgManager::from_config(&PGConfig::from_env().unwrap()).expect("Error creating PgManager Instance");
+    let pg_monitor_config = PGMonitorConfig::from_env();
     loop {
-        tokio::time::sleep(Duration::from_secs(5)).await;
+        tokio::time::sleep(Duration::from_secs(pg_monitor_config.poll_interval)).await;
         reset_tasks(&pgm).await;
+        match pgm.delete_terminated_tasks(pg_monitor_config.task_retention_time).await {
+            Ok(count) => println!("tasks deleted: {count}"),
+            Err(e) => println!("error occured while deleting terminated tasks {e}"),
+        };
     }
 }
 
