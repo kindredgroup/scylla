@@ -16,7 +16,7 @@ pub fn get_pool(config: &PGConfig) -> Result<Pool, deadpool_postgres::BuildError
         recycling_method: RecyclingMethod::Fast,
     };
     let mgr = Manager::from_config(config.to_pg_config(), NoTls, mgr_config);
-    Pool::builder(mgr).max_size(16).build()
+    Pool::builder(mgr).max_size(config.pg_pool_size).build()
 }
 /// This function returns an instance of `PostgresSQL Client` created by `tokio_postgres`.
 /// # Arguments

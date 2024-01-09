@@ -7,6 +7,7 @@ use scylla_pg_core::config::PGConfig;
 use scylla_pg_lib::manager::PgManager;
 use std::fmt::Display;
 
+use crate::validator::validate_pool_size;
 use models::{JsAddTaskModel, JsGetTasksModel, JsTaskError};
 use validator::{validate_json, validate_port, validate_status, JSScyllaError};
 
@@ -17,6 +18,7 @@ pub struct JsDbConfig {
     pub pg_user: String,
     pub pg_password: String,
     pub pg_database: String,
+    pub pg_pool_size: u32,
 }
 macro_rules! map_lib_response {
     ($task_result: expr) => {
@@ -38,12 +40,14 @@ impl ScyllaManager {
     #[napi]
     pub fn init_pg_config(js_db_config: JsDbConfig) -> napi::Result<ScyllaManager> {
         let port = validate_port(js_db_config.pg_port)?;
+        let pg_pool_size = validate_pool_size(js_db_config.pg_pool_size)?;
         let pg_config = PGConfig {
             pg_host: js_db_config.pg_host,
             pg_port: port,
             pg_user: js_db_config.pg_user,
             pg_password: js_db_config.pg_password,
             pg_database: js_db_config.pg_database,
+            pg_pool_size,
         };
         Ok(Self {
             pg_manager: PgManager::from_config(&pg_config).map_err(map_error_to_napi_error)?,

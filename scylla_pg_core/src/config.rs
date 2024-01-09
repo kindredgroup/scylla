@@ -12,6 +12,7 @@ pub struct PGConfig {
     pub pg_user: String,
     pub pg_password: String,
     pub pg_database: String,
+    pub pg_pool_size: usize,
 }
 
 impl PGConfig {
@@ -22,6 +23,7 @@ impl PGConfig {
     /// `PG_USER=****`
     /// `PG_PASSWORD=****`
     /// `PG_DATABASE=scylla`
+    /// `PG_POOL_SIZE=50
     /// `let config = PGConfig::from_env().unwrap();`
     /// # Panics
     /// In case of missing or invalid data from env file
@@ -56,6 +58,7 @@ impl Default for PGConfig {
             pg_user: String::new(),
             pg_password: String::new(),
             pg_database: String::new(),
+            pg_pool_size: 50,
         }
     }
 }
@@ -72,6 +75,7 @@ mod tests {
         env::set_var("PG_USER", "pgadmin");
         env::set_var("PG_PASSWORD", "pgpass");
         env::set_var("PG_DATABASE", "db");
+        env::set_var("PG_POOL_SIZE", "100");
         let config = PGConfig::from_env().unwrap();
         assert_eq!(
             config,
@@ -81,6 +85,7 @@ mod tests {
                 pg_user: "pgadmin".to_owned(),
                 pg_password: "pgpass".to_owned(),
                 pg_database: "db".to_owned(),
+                pg_pool_size: 100
             }
         );
     }
@@ -91,6 +96,7 @@ mod tests {
         env::set_var("PG_USER", "pgadmin");
         env::set_var("PG_PASSWORD", "pgpass");
         env::set_var("PG_DATABASE", "db");
+        env::set_var("PG_POOL_SIZE", "100");
         let config = PGConfig::from_env().unwrap();
         let mut pgc = tokio_postgres::Config::new();
         pgc.host("localhost").port(5432).user("pgadmin").password("pgpass").dbname("db");
@@ -104,6 +110,7 @@ mod tests {
         env::set_var("PG_USER", "pgadmin");
         env::set_var("PG_PASSWORD", "pgpass");
         env::set_var("PG_DATABASE", "db");
+        env::set_var("PG_POOL_SIZE", "100");
         let config = PGConfig::from_env().unwrap();
         let mut pgc = tokio_postgres::Config::new();
         pgc.host("localhost").port(5432).user("pgadmin").password("pgpass");
@@ -121,6 +128,7 @@ mod tests {
                 pg_user: "".to_owned(),
                 pg_password: "".to_owned(),
                 pg_database: "".to_owned(),
+                pg_pool_size: 50
             }
         );
     }

@@ -62,6 +62,7 @@ export declare type DbConfig = {
   pgUser: string
   pgPassword: string
   pgDatabase: string
+  pgPoolSize: number
 };
 
 class Scylla {

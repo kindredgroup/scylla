@@ -37,6 +37,12 @@ pub fn validate_json(spec: &str, field: &str) -> Result<serde_json::Value, JSScy
 pub fn validate_port(port: u32) -> Result<u16, JSScyllaError> {
     match u16::try_from(port) {
         Ok(t) => Ok(t),
-        Err(_) => Err(JSScyllaError::ArgumentValidationError("Invalid value for port".to_string())),
+        Err(_) => Err(JSScyllaError::ArgumentValidationError("Invalid value for pg_port".to_string())),
+    }
+}
+pub fn validate_pool_size(pool_size: u32) -> Result<usize, JSScyllaError> {
+    match usize::try_from(pool_size) {
+        Ok(t) => Ok(t),
+        Err(_) => Err(JSScyllaError::ArgumentValidationError("Invalid value for pg_pool_size".to_string())),
     }
 }

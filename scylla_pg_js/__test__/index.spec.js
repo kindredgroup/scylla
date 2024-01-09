@@ -13,7 +13,8 @@ function get_singleton_manager() {
     pgPort: parseInt(process.env["PG_PORT"]),
     pgUser: process.env["PG_USER"],
     pgPassword: process.env["PG_PASSWORD"],
-    pgDatabase: process.env["PG_DATABASE"]
+    pgDatabase: process.env["PG_DATABASE"],
+    pgPoolSize: parseInt(process.env["PG_POOL_SIZE"]),
   })
   root_sc = sc;
   return root_sc;

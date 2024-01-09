@@ -26,6 +26,7 @@ export interface JsDbConfig {
   pgUser: string
   pgPassword: string
   pgDatabase: string
+  pgPoolSize: number
 }
 export class ScyllaManager {
   /**
