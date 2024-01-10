@@ -33,6 +33,9 @@ where
     async fn update(&self, task: Task) -> Result<Task, Self::PersistenceError>;
     async fn query(&self, get_task_model: &GetTaskModel) -> Result<Vec<Task>, Self::PersistenceError>;
     async fn query_by_rn(&self, rn: String) -> Result<Task, Self::PersistenceError>;
+
+    async fn update_batch(&self, queue: String, limit: i32, worker: String, task_timeout_in_secs: i64) -> Result<Vec<Task>, Self::PersistenceError>;
+    async fn delete_batch(&self, retention_time_in_secs: i64) -> Result<u64, Self::PersistenceError>;
 }
 
 #[cfg(test)]

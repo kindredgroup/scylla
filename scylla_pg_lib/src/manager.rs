@@ -110,6 +110,11 @@ impl PgManager {
     }
     /// # Errors
     /// Returns `PgAdapterError`
+    pub async fn lease_n_tasks(&self, queue: String, limit: i32, worker: String, task_timeout_in_secs: Option<i64>) -> Result<Vec<Task>, PgAdapterError> {
+        self.pg_adapter.update_batch(queue, limit, worker, task_timeout_in_secs.unwrap_or(10)).await
+    }
+    /// # Errors
+    /// Returns `PgAdapterError`
     pub async fn yield_task(&self, rn: String) -> Result<Task, PgAdapterError> {
         let update_task_model = UpdateTaskModel {
             rn,
@@ -142,6 +147,12 @@ impl PgManager {
         let task_to_update = self.fetch_task(utm.rn.clone()).await?;
         let task = ScyllaOperations::update_task_operation(utm, task_to_update)?;
         self.pg_adapter.update(task).await
+    }
+
+    /// # Errors
+    /// Returns `PgAdapterError`
+    pub async fn delete_terminated_tasks(&self, retention_tim_in_secs: i64) -> Result<u64, PgAdapterError> {
+        self.pg_adapter.delete_batch(retention_tim_in_secs).await
     }
 }
 

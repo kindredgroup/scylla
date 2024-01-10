@@ -13,6 +13,8 @@ struct MockPgAdapter {
     update: fn(Task) -> Result<Task, PgAdapterError>,
     query: fn(&GetTaskModel) -> Result<Vec<Task>, PgAdapterError>,
     query_by_rn: fn(String) -> Result<Task, PgAdapterError>,
+    update_batch: fn(queue: String, limit: i32, worker: String, task_timeout_in_secs: i64) -> Result<Vec<Task>, PgAdapterError>,
+    delete_batch: fn(retention_time_in_secs: i64) -> Result<u64, PgAdapterError>,
 }
 impl MockPgAdapter {
     fn on_insert(mut self, f: fn(Task) -> Result<Task, PgAdapterError>) -> Self {
@@ -43,6 +45,8 @@ impl Default for MockPgAdapter {
             update: |_| unimplemented!(),
             query: |_| unimplemented!(),
             query_by_rn: |_| unimplemented!(),
+            update_batch: |_, _, _, _| unimplemented!(),
+            delete_batch: |_| unimplemented!(),
         }
     }
 }
@@ -64,6 +68,13 @@ impl Persistence for MockPgAdapter {
 
     async fn query_by_rn(&self, rn: String) -> Result<Task, Self::PersistenceError> {
         (self.query_by_rn)(rn)
+    }
+
+    async fn update_batch(&self, queue: String, limit: i32, worker: String, task_timeout_in_secs: i64) -> Result<Vec<Task>, Self::PersistenceError> {
+        (self.update_batch)(queue, limit, worker, task_timeout_in_secs)
+    }
+    async fn delete_batch(&self, retention_time_in_secs: i64) -> Result<u64, Self::PersistenceError> {
+        (self.delete_batch)(retention_time_in_secs)
     }
 }
 

@@ -10,7 +10,8 @@ import Scylla,{TaskStatus} from "scylla_pg_client";
       pgPort: 5432,
       pgUser: "admin",
       pgPassword: "admin",
-      pgDatabase: "scylla"
+      pgDatabase: "scylla",
+      pgPoolSize: 10
     });
 
   let atm = {

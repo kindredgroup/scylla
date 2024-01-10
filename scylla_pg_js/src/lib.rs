@@ -7,6 +7,7 @@ use scylla_pg_core::config::PGConfig;
 use scylla_pg_lib::manager::PgManager;
 use std::fmt::Display;
 
+use crate::validator::validate_pool_size;
 use models::{JsAddTaskModel, JsGetTasksModel, JsTaskError};
 use validator::{validate_json, validate_port, validate_status, JSScyllaError};
 
@@ -17,6 +18,7 @@ pub struct JsDbConfig {
     pub pg_user: String,
     pub pg_password: String,
     pub pg_database: String,
+    pub pg_pool_size: u32,
 }
 macro_rules! map_lib_response {
     ($task_result: expr) => {
@@ -38,12 +40,14 @@ impl ScyllaManager {
     #[napi]
     pub fn init_pg_config(js_db_config: JsDbConfig) -> napi::Result<ScyllaManager> {
         let port = validate_port(js_db_config.pg_port)?;
+        let pg_pool_size = validate_pool_size(js_db_config.pg_pool_size)?;
         let pg_config = PGConfig {
             pg_host: js_db_config.pg_host,
             pg_port: port,
             pg_user: js_db_config.pg_user,
             pg_password: js_db_config.pg_password,
             pg_database: js_db_config.pg_database,
+            pg_pool_size,
         };
         Ok(Self {
             pg_manager: PgManager::from_config(&pg_config).map_err(map_error_to_napi_error)?,
@@ -95,6 +99,12 @@ impl ScyllaManager {
         let task_result = self.pg_manager.lease_task(rn, worker, task_timeout_in_secs).await;
         map_lib_response!(task_result)
     }
+
+    #[napi]
+    pub async fn lease_n_tasks(&self, queue: String, limit: i32, worker: String, task_timeout_in_secs: Option<i64>) -> napi::Result<String> {
+        let task_result = self.pg_manager.lease_n_tasks(queue, limit, worker, task_timeout_in_secs).await;
+        map_lib_response!(task_result)
+    }
     /// # Errors
     /// Convert rust error into `napi::Error`
     #[napi]
@@ -120,7 +130,7 @@ impl ScyllaManager {
     /// Convert rust error into `napi::Error`
     #[napi]
     pub async fn abort_task(&self, rn: String, js_error: JsTaskError) -> napi::Result<String> {
-        let error_args = validate_json(js_error.args.as_str(), "errors.args")?;
+        let error_args = validate_json(js_error.args.as_str(), "args")?;
         let task_error = TaskError {
             code: js_error.code,
             args: error_args,

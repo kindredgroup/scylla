@@ -6,11 +6,12 @@ use crate::adapter_utils::{
 };
 use crate::error::PgAdapterError;
 use async_trait::async_trait;
+use chrono::{Duration, Utc};
 use deadpool_postgres::{Client, Pool};
-use scylla_models::{GetTaskModel, Task};
+use scylla_models::{GetTaskModel, Task, TaskHistory, TaskHistoryType};
 use scylla_operations::task::Persistence;
-use serde_json::from_value;
-use tokio_postgres::types::ToSql;
+use serde_json::{from_value, json};
+use tokio_postgres::types::{Json, ToSql};
 
 const INSERT_TASK_SQL: &str = "
     INSERT INTO task(data) VALUES ($1) \
@@ -26,13 +27,27 @@ const GET_TASKS_SQL: &str = "
         where data ->> 'status' like $1 \
         AND data ->> 'queue' like $2 \
         AND (('%' = $3 OR data ->> 'owner' like $3))
-        order by data ->> 'priority' asc, data -> 'created' asc
+        order by data ->> 'priority' desc, data -> 'created' desc
         limit $4::Int
       ";
 const GET_TASK_SQL: &str = "
         Select data::JSONB from task \
         where data ->> 'rn' = $1 \
       ";
+const UPDATE_BATCH_TASK_SQL: &str = "
+    WITH tasks AS ( Select data::JSONB from task \
+        where data ->> 'status' like 'ready' \
+        AND data ->> 'queue' like $1 \
+        order by data ->> 'priority' desc, data -> 'created' desc
+        limit $2::Int)
+    UPDATE task t SET data = jsonb_set(jsonb_set(jsonb_set(jsonb_set( \
+            jsonb_set(t.data, '{status}', '\"running\"'), \
+         '{owner}', $3), '{deadline}', $4), '{updated}', $5), '{history, 100}', $6) from tasks where t.data ->> 'rn' = tasks.data ->> 'rn' returning t.data
+  ";
+
+const DELETE_BATCH_TASK_SQL: &str = "
+    DELETE from task where data ->> 'status' in ('completed', 'cancelled', 'aborted') AND data ->> 'updated' < $1
+";
 
 pub struct PgAdapter {
     pub pool: Pool,
@@ -41,6 +56,7 @@ pub struct PgAdapter {
 #[async_trait]
 pub trait DbExecute {
     async fn execute(&self, sql: &str, params: &[&(dyn ToSql + Sync)]) -> Result<Vec<Task>, PgAdapterError>;
+    async fn execute_count(&self, sql: &str, params: &[&(dyn ToSql + Sync)]) -> Result<u64, PgAdapterError>;
 }
 
 #[async_trait]
@@ -56,6 +72,12 @@ impl DbExecute for PgAdapter {
                 task_value
             })
             .collect())
+    }
+    async fn execute_count(&self, sql: &str, params: &[&(dyn ToSql + Sync)]) -> Result<u64, PgAdapterError> {
+        let client: Client = self.pool.get().await?;
+        let stmt = client.prepare_cached(sql).await?;
+        let rows = client.execute(&stmt, params).await?;
+        Ok(rows)
     }
 }
 
@@ -85,5 +107,24 @@ impl Persistence for PgAdapter {
         let execute_resp = &self.execute(GET_TASK_SQL, &[&rn]).await?;
         let t = handle_query_by_rn_return(execute_resp, &rn)?;
         Ok(t.clone())
+    }
+
+    async fn update_batch(&self, queue: String, limit: i32, worker: String, task_timeout_in_secs: i64) -> Result<Vec<Task>, Self::PersistenceError> {
+        let deadline = Json(json!(Utc::now() + Duration::seconds(task_timeout_in_secs)));
+        let updated = Json(json!(Utc::now()));
+        let worker_json = Json(json!(worker));
+        let task_history = Json(json!(TaskHistory {
+            typ: TaskHistoryType::Assignment,
+            time: Utc::now(),
+            worker: worker.clone(),
+            progress: Some(0.0),
+        }));
+        self.execute(UPDATE_BATCH_TASK_SQL, &[&queue, &limit, &worker_json, &deadline, &updated, &task_history])
+            .await
+    }
+
+    async fn delete_batch(&self, retention_time_in_secs: i64) -> Result<u64, Self::PersistenceError> {
+        let deletion_time = format!("{:?}", Utc::now() - Duration::seconds(retention_time_in_secs));
+        self.execute_count(DELETE_BATCH_TASK_SQL, &[&deletion_time]).await
     }
 }
