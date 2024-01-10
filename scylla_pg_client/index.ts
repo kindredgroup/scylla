@@ -129,7 +129,7 @@ class Scylla {
     if (!taskError || !taskError.args){
       throw Error ( "Invalid argument. taskError.args cannot be undefined" );
     }
-    let response = JSON.parse(await this.scyllaManager.abortTask(rn, {...taskError, args: JSON.stringify(taskError.args)}));
+    let response = await this.scyllaManager.abortTask(rn, {...taskError, args: JSON.stringify(taskError.args)});
     return JSON.parse(response);
   }
 }

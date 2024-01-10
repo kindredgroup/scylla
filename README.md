@@ -80,7 +80,7 @@ The monitor process is replicated mainly for fault tolerance. Monitoring through
 
 Task specifications are opaque to the monitor, in that the latter does not attempt to interpret the contents of the `spec` attribute. Tasks are constrained to a set of related _worker_ processes, which are aware of the specification schema.
 
-Tasks have priorities in the range 0..4_294_967_295u32 (in descending order, Higher number means more critical).
+Tasks have priorities in the range 0..127 (in descending order, 127 means most critical).
 ## Worker Process
 A **worker** is a background process that polls the task table for ready tasks and adopts the oldest one with the highest priority if it has the capacity to do so. Workers are external to the task scheduling middleware. Unlike a monitor, a worker process is intrinsically aware of the task specification schema. Workers are responsible for managing their capacity and scaling in/out as necessary.
 

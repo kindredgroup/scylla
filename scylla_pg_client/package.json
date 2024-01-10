@@ -14,7 +14,7 @@
   "email": "asharmaanil@gmail.com",
   "license": "MIT",
   "dependencies": {
-    "scylla_pg_js": "0.1.11"
+    "scylla_pg_js": "0.1.17"
   },
   "devDependencies": {
     "@ava/typescript": "^4.1.0",
@@ -26,15 +26,6 @@
     "esbuild": "^0.18.0"
   },
   "ava": {
-    "typescript": {
-      "rewritePaths": {
-        "/": "dist/"
-      },
-      "extensions": [
-        "ts"
-      ],
-      "compile": false
-    }
   },
   "main": "index.js",
   "types": "index.d.ts",

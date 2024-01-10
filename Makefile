@@ -90,6 +90,9 @@ test.component:
 test.component.lib:
 	$(call pp,rust component tests...)
 	cd scylla_pg_js && npm run build && npm run test
+test.pg.client:
+	$(call pp,rust component tests...)
+	cd scylla_pg_client && npm run build && npm run test
 
 test.nightly:
 	$(call pp,rust test.nightly...)
