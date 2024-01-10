@@ -38,7 +38,7 @@ const UPDATE_BATCH_TASK_SQL: &str = "
     WITH tasks AS ( Select data::JSONB from task \
         where data ->> 'status' like 'ready' \
         AND data ->> 'queue' like $1 \
-        order by data ->> 'priority' desc, data -> 'created' desc
+        order by data ->> 'priority' desc, data -> 'created' asc
         limit $2::Int)
     UPDATE task t SET data = jsonb_set(jsonb_set(jsonb_set(jsonb_set( \
             jsonb_set(t.data, '{status}', '\"running\"'), \
