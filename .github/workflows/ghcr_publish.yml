@@ -4,8 +4,6 @@ name: GHCR Publish
 # tag should be in the format v1.0.0
 # regex to check the tag format
 on:
-  release:
-    types: [created]
   push:
     tags:
         - 'v[0-9]+.[0-9]+.[0-9]+'
@@ -29,9 +27,9 @@ jobs:
             - run: bin/ubuntu-setup.sh
 
             - name: Build and publish scylla image with ver and latest tag
-              run: sh bin/ghcr-publish.sh  scylla_pg_monitor
+              run: sh bin/ghcr-publish.sh scylla_pg_monitor scylla_pg_monitor
             
             - name: Build and publish the pg-migration Docker image
-              run: sh bin/ghcr-publish.sh  scylla_pg_migration
+              run: sh bin/ghcr-publish.sh scylla_pg_core scylla_pg_migration
 
    
