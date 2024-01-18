@@ -45,7 +45,12 @@ impl PGConfig {
     }
     pub fn to_without_db_config(&self) -> tokio_postgres::Config {
         let mut pg_config = tokio_postgres::Config::new();
-        pg_config.host(&self.pg_host).port(self.pg_port).user(&self.pg_user).password(&self.pg_password);
+        pg_config
+            .host(&self.pg_host)
+            .port(self.pg_port)
+            .user(&self.pg_user)
+            .password(&self.pg_password)
+            .dbname("postgres");
         pg_config
     }
 }
