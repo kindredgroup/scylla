@@ -118,7 +118,7 @@ mod tests {
         env::set_var("PG_POOL_SIZE", "100");
         let config = PGConfig::from_env().unwrap();
         let mut pgc = tokio_postgres::Config::new();
-        pgc.host("localhost").port(5432).user("pgadmin").password("pgpass");
+        pgc.host("localhost").port(5432).user("pgadmin").password("pgpass").dbname("postgres");
         assert_eq!(config.to_without_db_config(), pgc);
     }
     #[test]
