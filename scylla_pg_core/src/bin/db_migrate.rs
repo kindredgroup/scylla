@@ -14,7 +14,7 @@ mod embedded {
 }
 #[tokio::main]
 async fn main() {
-    try_create_db().await.expect("could not create database");
+    // try_create_db().await.expect("could not create database");
     run_migrations().await;
 }
 

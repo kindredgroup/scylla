@@ -1259,7 +1259,7 @@ dependencies = [
 
 [[package]]
 name = "scylla_pg_core"
-version = "0.1.19"
+version = "0.1.20"
 dependencies = [
  "chrono",
  "config",
@@ -1313,7 +1313,7 @@ dependencies = [
 
 [[package]]
 name = "scylla_pg_monitor"
-version = "0.1.19"
+version = "0.1.20"
 dependencies = [
  "async-trait",
  "chrono",
