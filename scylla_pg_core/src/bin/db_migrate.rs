@@ -14,13 +14,18 @@ mod embedded {
 }
 #[tokio::main]
 async fn main() {
-    try_create_db().await.expect("could not create database");
-    run_migrations().await;
-}
-
-async fn run_migrations() {
     dotenv::dotenv().ok();
     let conf = PGConfig::from_env().unwrap();
+    let is_env = std::env::var("DB_ENV").unwrap_or_default();
+    if is_env == "mig-test" {
+        try_create_db(&conf).await.expect("could not create database");
+    } else {
+        println!("skipping database creation for non test environment");
+    }
+    run_migrations(&conf).await;
+}
+
+async fn run_migrations(conf: &PGConfig) {
     let pg_config = conf.to_pg_config();
     match get_client(&pg_config).await {
         Ok(mut client) => {
@@ -35,18 +40,10 @@ async fn run_migrations() {
     }
 }
 
-async fn try_create_db() -> Result<(), tokio_postgres::Error> {
-    dotenv::dotenv().ok();
-    let is_env = std::env::var("DB_ENV").unwrap_or_default();
-    let conf = PGConfig::from_env().unwrap();
-    if is_env == "mig-test" {
-        let pg_config = conf.to_without_db_config();
-        let client = get_client(&pg_config).await?;
-        create_db(&client, conf.pg_database.as_str()).await
-    } else {
-        println!("skipping database creation for non test environment");
-        Ok(())
-    }
+async fn try_create_db(conf: &PGConfig) -> Result<(), tokio_postgres::Error> {
+    let pg_config = conf.to_without_db_config();
+    let client = get_client(&pg_config).await?;
+    create_db(&client, conf.pg_database.as_str()).await
 }
 
 /// Create database

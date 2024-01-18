@@ -45,12 +45,7 @@ impl PGConfig {
     }
     pub fn to_without_db_config(&self) -> tokio_postgres::Config {
         let mut pg_config = tokio_postgres::Config::new();
-        pg_config
-            .host(&self.pg_host)
-            .port(self.pg_port)
-            .user(&self.pg_user)
-            .password(&self.pg_password)
-            .dbname("postgres");
+        pg_config.host(&self.pg_host).port(self.pg_port).user(&self.pg_user).password(&self.pg_password);
         pg_config
     }
 }
@@ -118,7 +113,7 @@ mod tests {
         env::set_var("PG_POOL_SIZE", "100");
         let config = PGConfig::from_env().unwrap();
         let mut pgc = tokio_postgres::Config::new();
-        pgc.host("localhost").port(5432).user("pgadmin").password("pgpass").dbname("postgres");
+        pgc.host("localhost").port(5432).user("pgadmin").password("pgpass");
         assert_eq!(config.to_without_db_config(), pgc);
     }
     #[test]
