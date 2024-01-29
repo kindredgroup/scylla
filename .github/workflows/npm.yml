@@ -8,7 +8,6 @@ env:
   APP_NAME: scylla_pg_js
   MACOSX_DEPLOYMENT_TARGET: '10.13'
 
-  
 jobs:
   npm_build:
     uses: ./.github/workflows/npm_build.yml
@@ -35,6 +34,11 @@ jobs:
             target: aarch64-apple-darwin
             build: |
               cd scylla_pg_js && npm run build -- --target aarch64-apple-darwin
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            build: |-
+              set -e &&
+              cd scylla_pg_js && npm run build -- --target x86_64-unknown-linux-musl
     name: stable - ${{ matrix.settings.target }} - node@18
     runs-on: ${{ matrix.settings.host }}
     steps:
@@ -146,4 +150,4 @@ jobs:
 
       - name: Publish
         run: PATH=$PATH:$(pwd) bin/npm-release.sh # only run on release created or tag
-      
+
