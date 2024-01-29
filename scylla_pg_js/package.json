@@ -8,7 +8,8 @@
     "triples": {
       "additional": [
         "aarch64-apple-darwin",
-        "universal-apple-darwin"
+        "universal-apple-darwin",
+        "x86_64-unknown-linux-musl"
       ]
     }
   },
