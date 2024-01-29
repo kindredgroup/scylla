@@ -39,6 +39,7 @@
     "scylla_pg_js-win32-x64-msvc": "0.1.10",
     "scylla_pg_js-darwin-x64": "0.1.10",
     "scylla_pg_js-linux-x64-gnu": "0.1.10",
+    "scylla_pg_js-linux-x64-musl": "0.1.10",
     "scylla_pg_js-darwin-arm64": "0.1.10",
     "scylla_pg_js-darwin-universal": "0.1.10"
   }
