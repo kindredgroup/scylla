@@ -1273,7 +1273,7 @@ dependencies = [
 
 [[package]]
 name = "scylla_pg_js"
-version = "0.1.19"
+version = "0.1.20"
 dependencies = [
  "chrono",
  "env_logger 0.9.3",
