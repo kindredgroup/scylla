@@ -1,6 +1,6 @@
 {
   "name": "scylla_pg_client",
-  "version": "0.1.22",
+  "version": "0.1.21",
   "description": "Scylla task scheduler, javascript binding.for postgres",
   "engines": {
     "node": ">=14.16.1",

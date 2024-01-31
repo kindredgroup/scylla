@@ -1,6 +1,6 @@
 {
   "name": "scylla_pg_js",
-  "version": "0.1.22",
+  "version": "0.1.21",
   "main": "index.js",
   "types": "index.d.ts",
   "napi": {
@@ -9,8 +9,7 @@
       "additional": [
         "aarch64-apple-darwin",
         "universal-apple-darwin",
-        "x86_64-unknown-linux-musl",
-        "aarch64-unknown-linux-musl"
+        "x86_64-unknown-linux-musl"
       ]
     }
   },
