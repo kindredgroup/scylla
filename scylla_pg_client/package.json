@@ -1,6 +1,6 @@
 {
   "name": "scylla_pg_client",
-  "version": "0.1.11",
+  "version": "0.1.22",
   "description": "Scylla task scheduler, javascript binding.for postgres",
   "engines": {
     "node": ">=14.16.1",
@@ -14,7 +14,7 @@
   "email": "asharmaanil@gmail.com",
   "license": "MIT",
   "dependencies": {
-    "scylla_pg_js": "0.1.17"
+    "scylla_pg_js": "0.1.22"
   },
   "devDependencies": {
     "@ava/typescript": "^4.1.0",
