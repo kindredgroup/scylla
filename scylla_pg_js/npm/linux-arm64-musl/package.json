@@ -1,15 +1,15 @@
 {
-  "name": "scylla_pg_js-linux-x64-musl",
+  "name": "scylla_pg_js-linux-arm64-musl",
   "version": "0.0.0",
   "os": [
     "linux"
   ],
   "cpu": [
-    "x64"
+    "arm64"
   ],
-  "main": "scylla_pg_js.linux-x64-musl.node",
+  "main": "scylla_pg_js.linux-arm64-musl.node",
   "files": [
-    "scylla_pg_js.linux-x64-musl.node"
+    "scylla_pg_js.linux-arm64-musl.node"
   ],
   "license": "MIT",
   "engines": {
