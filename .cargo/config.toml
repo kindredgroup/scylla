@@ -6,3 +6,15 @@ rustflags = ["-C", "link-args=-Wl,-undefined,dynamic_lookup"]
 
 [target.x86_64-unknown-linux-gnu]
 rustflags = ["-C", "link-args=-Wl,-undefined,dynamic_lookup"]
+
+[target.aarch64-unknown-linux-gnu]
+linker = "aarch64-linux-gnu-gcc"
+
+[target.aarch64-unknown-linux-musl]
+linker = "aarch64-linux-musl-gcc"
+rustflags = ["-C", "target-feature=-crt-static"]
+# rustflags = [ "-C", "target-feature=+crt-static", "-C", "link-arg=-lgcc" ]
+
+# [target.aarch64-unknown-linux-musl]
+# linker = "aarch64-linux-musl-ld"
+
