@@ -67,6 +67,12 @@ pg.monitor:
 db.migrate:
 	$(call pp,db migrate...)
 	cargo run --bin db_migrate
+
+## db.create: 🧪 Creates a new DB
+db.create:
+	$(call pp,db migrate...)
+	cargo run --bin db_create
+# cargo run --bin db_delete
 truncate:
 	$(call pp, truncate...)
 	RUSTFLAGS="" cargo run --bin truncate
