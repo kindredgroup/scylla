@@ -1,8 +1,8 @@
 name: CI
 on:
   push:
-      # tags:
-      #     - 'v[0-9]+.[0-9]+.[0-9]+'
+      tags:
+          - 'v[0-9]+.[0-9]+.[0-9]+'
 env:
   DEBUG: napi:*
   APP_NAME: scylla_pg_js
@@ -176,5 +176,5 @@ jobs:
       - run: ls -R ./scylla_pg_js/npm
       - run: ls -R ./scylla_pg_js/artifacts
 
-      # - name: Publish
-      #   run: PATH=$PATH:$(pwd) bin/npm-release.sh # only run on release created or tag
+      - name: Publish
+        run: PATH=$PATH:$(pwd) bin/npm-release.sh # only run on release created or tag
