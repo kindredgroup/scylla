@@ -32,14 +32,9 @@ async fn main() -> Result<(), tokio_postgres::Error> {
     let to_db_config = conf.to_pg_config();
     let new_db_client = get_client(&to_db_config).await?;
 
-    if template_name.is_some() {
-        let mig_user = std::env::var("PG_MIG_USER").expect("PG_MIG_USER is required");
-        log::info!("assigning permissions to database {} for user {} ", conf.pg_database, mig_user);
-        assign_permissions(&new_db_client, &conf.pg_database, &mig_user).await
-    } else {
-        log::info!("no permissions to assign");
-        Ok(())
-    }
+    let mig_user = std::env::var("PG_MIG_USER").expect("PG_MIG_USER is required");
+    log::info!("assigning permissions to database {} for user {} ", conf.pg_database, mig_user);
+    assign_permissions(&new_db_client, &conf.pg_database, &mig_user).await
 }
 
 async fn create_db(client: &Client, database_name: &str, db_template: &Option<String>) -> Result<(), tokio_postgres::Error> {
