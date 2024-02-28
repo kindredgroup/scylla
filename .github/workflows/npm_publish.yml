@@ -78,10 +78,10 @@ jobs:
           node-version: 18
           check-latest: true
       - name: Install toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@1.75.0
         if: ${{ !matrix.settings.docker }}
         with:
-          toolchain: stable
+          toolchain: 1.75.0
           target: ${{ matrix.settings.target }}
       - name: Cache cargo
         uses: actions/cache@v4
@@ -178,4 +178,3 @@ jobs:
 
       - name: Publish
         run: PATH=$PATH:$(pwd) bin/npm-release.sh # only run on release created or tag
-

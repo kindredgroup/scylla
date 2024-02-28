@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@1.75.0
         with:
-          toolchain: stable
+          toolchain: 1.75.0
       - run: bin/ubuntu-setup.sh
       - run: rustup component add rustfmt clippy
       - name: cargo build

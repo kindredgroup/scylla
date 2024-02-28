@@ -29,7 +29,26 @@ pub async fn get_client(config: &Config) -> Result<Client, tokio_postgres::Error
     let (client, connection) = config.connect(tokio_postgres::NoTls).await?;
     tokio::spawn(async move {
         if let Err(e) = connection.await {
-            eprintln!("connection error: {e}");
+            log::error!("connection error: {e}");
+        }
+    });
+    Ok(client)
+}
+
+pub async fn get_client_custom(config: &PGConfig) -> Result<Client, tokio_postgres::Error> {
+    let (client, connection) = Config::new()
+        .host(&config.pg_host)
+        .port(config.pg_port)
+        .user(&config.pg_user)
+        .password(&config.pg_password)
+        .dbname(&config.pg_database)
+        .connect(tokio_postgres::NoTls)
+        .await?;
+
+    // let (client, connection) = custom_config.connect(tokio_postgres::NoTls).await?;
+    tokio::spawn(async move {
+        if let Err(e) = connection.await {
+            log::error!("connection error: {e}");
         }
     });
     Ok(client)
