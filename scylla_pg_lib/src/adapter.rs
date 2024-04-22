@@ -82,6 +82,7 @@ impl DbExecute for PgAdapter {
                         })
                         .collect());
                     if let Err(e) = tx.commit().await {
+                        try_count = try_count + 1;
                         log::error!("commit for tx failed : {}", e.to_string());
                         error = Some(PgAdapterError::DbError(e));
                     } else {
@@ -163,7 +164,7 @@ impl Persistence for PgAdapter {
             worker: worker.clone(),
             progress: Some(0.0),
         }));
-        
+
         self.execute(UPDATE_BATCH_TASK_SQL, &[&queue, &limit, &worker_json, &deadline, &updated, &task_history])
             .await
     }
@@ -173,3 +174,7 @@ impl Persistence for PgAdapter {
         self.execute_count(DELETE_BATCH_TASK_SQL, &[&deletion_time]).await
     }
 }
+
+// impl PgAdapter {
+//     async fn retry_operation(&self, count: i32, operation: Box<dyn Fn() -> Result<Vec<Task>, Self::PersistenceError>>) -> Result<Vec<Task>, Self::PersistenceError> {}
+// }
