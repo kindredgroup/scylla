@@ -163,6 +163,7 @@ impl Persistence for PgAdapter {
             worker: worker.clone(),
             progress: Some(0.0),
         }));
+        
         self.execute(UPDATE_BATCH_TASK_SQL, &[&queue, &limit, &worker_json, &deadline, &updated, &task_history])
             .await
     }
