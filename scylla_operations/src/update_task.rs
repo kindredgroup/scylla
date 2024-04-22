@@ -202,7 +202,7 @@ pub fn request_handler(task: Task, update_task_model: &UpdateTaskModel) -> Resul
             Ok(prepare_status_task(task, update_task_model))
         }
         UpdateOperation::HeartBeat => {
-            validate_heart_beat_operation(&task, &update_task_model)?;
+            validate_heart_beat_operation(&task, update_task_model)?;
             Ok(prepare_heart_beat_task(task, update_task_model))
         }
         UpdateOperation::Yield => {

@@ -11,9 +11,9 @@ use deadpool_postgres::{Client, Pool};
 use scylla_models::{GetTaskModel, Task, TaskHistory, TaskHistoryType};
 use scylla_operations::task::Persistence;
 use serde_json::{from_value, json};
-use tokio_postgres::{Error, IsolationLevel, Row};
 use tokio_postgres::error::SqlState;
 use tokio_postgres::types::{Json, ToSql};
+use tokio_postgres::IsolationLevel;
 
 const INSERT_TASK_SQL: &str = "
     INSERT INTO task(data) VALUES ($1) \
@@ -67,24 +67,24 @@ impl DbExecute for PgAdapter {
         let max_tries = 5;
         let mut try_count = 1;
         let mut tasks: Option<Vec<Task>> = None;
-        let mut error: Option<PgAdapterError> = None;
+        let error: Option<PgAdapterError>;
         loop {
             let mut client: Client = self.pool.get().await?;
             let stmt = client.prepare_cached(sql).await?;
             let tx = client.build_transaction().isolation_level(IsolationLevel::RepeatableRead).start().await?;
             match tx.query(&stmt, params).await {
                 Ok(rows) => {
-                    tasks = Some(rows
-                        .into_iter()
-                        .map(|row| {
-                            let task_value: Task = from_value(row.get(0)).unwrap();
-                            task_value
-                        })
-                        .collect());
+                    tasks = Some(
+                        rows.into_iter()
+                            .map(|row| {
+                                let task_value: Task = from_value(row.get(0)).unwrap();
+                                task_value
+                            })
+                            .collect(),
+                    );
                     if let Err(e) = tx.commit().await {
-                        try_count = try_count + 1;
+                        try_count += 1;
                         log::error!("commit for tx failed : {}", e.to_string());
-                        error = Some(PgAdapterError::DbError(e));
                     } else {
                         error = None;
                         break;
@@ -100,8 +100,7 @@ impl DbExecute for PgAdapter {
                     } else {
                         match e.code() {
                             Some(&SqlState::T_R_SERIALIZATION_FAILURE) => {
-                                error = Some(PgAdapterError::DbError(e));
-                                try_count = try_count + 1;
+                                try_count += 1;
                             }
                             _ => {
                                 log::error!("Error processing transaction {:?}", e);
@@ -113,8 +112,8 @@ impl DbExecute for PgAdapter {
                 }
             }
         }
-        if error.is_some() {
-            return Err(error.unwrap());
+        if let Some(e) = error {
+            return Err(e);
         }
         return Ok(tasks.unwrap());
     }

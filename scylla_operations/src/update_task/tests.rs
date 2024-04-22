@@ -1,8 +1,8 @@
 // $coverage:ignore-start
 use crate::error::ScyllaOperationsError;
 use crate::update_task::*;
-use scylla_models::{Task, TaskError, TaskStatus, UpdateOperation, UpdateTaskModel};
 use scylla_models::UpdateOperation::HeartBeat;
+use scylla_models::{Task, TaskError, TaskStatus, UpdateOperation, UpdateTaskModel};
 
 #[test]
 fn validate_status_failure_scenarios() {
@@ -363,8 +363,6 @@ fn prepare_yield_task_cases() {
 fn validate_heart_beat_operation_cases() {
     /*********************************/
     //  Only Running task can be send heart beat
-
-
 
     let t_ready = Task {
         status: TaskStatus::Ready,

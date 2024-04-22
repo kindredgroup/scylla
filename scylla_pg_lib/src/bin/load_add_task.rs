@@ -1,12 +1,11 @@
-use std::sync::Arc;
-use std::time::Duration;
-use serde_json::{json, Value};
-use uuid::{Uuid};
-use log::log;
-use tokio::sync::RwLock;
 use scylla_models::AddTaskModel;
 use scylla_pg_core::config::PGConfig;
 use scylla_pg_lib::manager::PgManager;
+use serde_json::json;
+use std::sync::Arc;
+use std::time::Duration;
+use tokio::sync::RwLock;
+use uuid::Uuid;
 
 #[tokio::main]
 pub async fn main() {

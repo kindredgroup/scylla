@@ -110,8 +110,8 @@ async fn pg_manager_mock_adapter() {
             worker: None,
             status: None,
         })
-            .await
-            .unwrap()[0]
+        .await
+        .unwrap()[0]
             .rn,
         "query".to_string()
     );
@@ -122,9 +122,9 @@ async fn pg_manager_mock_adapter() {
             priority: 1,
             queue: "s".to_string(),
         })
-            .await
-            .unwrap()
-            .rn,
+        .await
+        .unwrap()
+        .rn,
         "add".to_string()
     );
     // update cases
@@ -149,7 +149,10 @@ async fn pg_manager_mock_adapter() {
             })
         });
     let pgm = PgManager { pg_adapter: Box::new(mock) };
-    assert_eq!(pgm.heartbeat_task("2".to_string(), "worker".to_string(), None, Some(5)).await.unwrap().rn, "update".to_string());
+    assert_eq!(
+        pgm.heartbeat_task("2".to_string(), "worker".to_string(), None, Some(5)).await.unwrap().rn,
+        "update".to_string()
+    );
     assert_eq!(pgm.complete_task("2".to_string()).await.unwrap().rn, "update".to_string());
     assert_eq!(
         pgm.abort_task(
@@ -160,9 +163,9 @@ async fn pg_manager_mock_adapter() {
                 description: "sd".to_string(),
             },
         )
-            .await
-            .unwrap()
-            .rn,
+        .await
+        .unwrap()
+        .rn,
         "update".to_string()
     );
     assert_eq!(pgm.yield_task("2".to_string()).await.unwrap().rn, "update".to_string());

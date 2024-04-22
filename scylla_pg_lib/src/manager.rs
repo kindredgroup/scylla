@@ -7,7 +7,7 @@ use scylla_pg_core::config::PGConfig;
 use scylla_pg_core::connection::get_pool;
 
 pub struct PgManager {
-    pg_adapter: Box<dyn Persistence<PersistenceError=PgAdapterError> + Send + Sync>,
+    pg_adapter: Box<dyn Persistence<PersistenceError = PgAdapterError> + Send + Sync>,
 }
 
 impl PgManager {
