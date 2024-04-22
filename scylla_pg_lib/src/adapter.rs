@@ -11,6 +11,8 @@ use deadpool_postgres::{Client, Pool};
 use scylla_models::{GetTaskModel, Task, TaskHistory, TaskHistoryType};
 use scylla_operations::task::Persistence;
 use serde_json::{from_value, json};
+use tokio_postgres::{Error, IsolationLevel, Row};
+use tokio_postgres::error::SqlState;
 use tokio_postgres::types::{Json, ToSql};
 
 const INSERT_TASK_SQL: &str = "
@@ -62,16 +64,58 @@ pub trait DbExecute {
 #[async_trait]
 impl DbExecute for PgAdapter {
     async fn execute(&self, sql: &str, params: &[&(dyn ToSql + Sync)]) -> Result<Vec<Task>, PgAdapterError> {
-        let client: Client = self.pool.get().await?;
-        let stmt = client.prepare_cached(sql).await?;
-        let rows = client.query(&stmt, params).await?;
-        Ok(rows
-            .into_iter()
-            .map(|row| {
-                let task_value: Task = from_value(row.get(0)).unwrap();
-                task_value
-            })
-            .collect())
+        let max_tries = 5;
+        let mut try_count = 1;
+        let mut tasks: Option<Vec<Task>> = None;
+        let mut error: Option<PgAdapterError> = None;
+        loop {
+            let mut client: Client = self.pool.get().await?;
+            let stmt = client.prepare_cached(sql).await?;
+            let tx = client.build_transaction().isolation_level(IsolationLevel::RepeatableRead).start().await?;
+            match tx.query(&stmt, params).await {
+                Ok(rows) => {
+                    tasks = Some(rows
+                        .into_iter()
+                        .map(|row| {
+                            let task_value: Task = from_value(row.get(0)).unwrap();
+                            task_value
+                        })
+                        .collect());
+                    if let Err(e) = tx.commit().await {
+                        log::error!("commit for tx failed : {}", e.to_string());
+                        error = Some(PgAdapterError::DbError(e));
+                    } else {
+                        error = None;
+                        break;
+                    }
+                }
+                Err(e) => {
+                    if let Err(err) = tx.rollback().await {
+                        log::error!("rollback for tx failed : {}", err.to_string());
+                    }
+                    if try_count == max_tries {
+                        error = Some(PgAdapterError::DbError(e));
+                        break;
+                    } else {
+                        match e.code() {
+                            Some(&SqlState::T_R_SERIALIZATION_FAILURE) => {
+                                error = Some(PgAdapterError::DbError(e));
+                                try_count = try_count + 1;
+                            }
+                            _ => {
+                                log::error!("Error processing transaction {:?}", e);
+                                error = Some(PgAdapterError::DbError(e));
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if error.is_some() {
+            return Err(error.unwrap());
+        }
+        return Ok(tasks.unwrap());
     }
     async fn execute_count(&self, sql: &str, params: &[&(dyn ToSql + Sync)]) -> Result<u64, PgAdapterError> {
         let client: Client = self.pool.get().await?;
