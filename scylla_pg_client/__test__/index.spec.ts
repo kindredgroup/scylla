@@ -35,10 +35,16 @@ test("add, lease and yield", async (t) => {
  t.is(taskAdded.rn, taskToAdd.rn);
  let leasedTask = await sc.leaseTask(taskAdded.rn, "worker");
  t.is(leasedTask.status, TaskStatus.running);
-  let heartBeatTask = await sc.heartBeatTask(taskAdded.rn, 0.2);
-  t.is(heartBeatTask.status, TaskStatus.running);
-  t.is(heartBeatTask.progress, 0.2);
-  let yieldedTask = await sc.yieldTask(taskAdded.rn);
+ let heartBeatTask = await sc.heartBeatTask(taskAdded.rn, "worker", 0.2);
+ t.is(heartBeatTask.status, TaskStatus.running);
+ t.is(heartBeatTask.progress, 0.2);
+ try {
+     await sc.heartBeatTask(taskAdded.rn, "worker1", 0.3); // Only owner can extend the heartbeat
+     t.is(false, true); // if last step ran without error. test should fail
+ } catch (e: any) {
+     t.is(e.message, "Validation failed: Only owner can extend the heartbeat.")
+ }
+ let yieldedTask = await sc.yieldTask(taskAdded.rn);
   t.is(yieldedTask.status, TaskStatus.running); // this needs monitor to run in parallel
 })
 

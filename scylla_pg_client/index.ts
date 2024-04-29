@@ -105,8 +105,8 @@ class Scylla {
       return JSON.parse(response);
     }
 
-  public async heartBeatTask(rn: string, progress?: number, taskTimeOutInSecs?: number): Promise<Task> {
-    let response = await this.scyllaManager.heartBeatTask(rn, progress, taskTimeOutInSecs);
+  public async heartBeatTask(rn: string, worker: string, progress?: number, taskTimeOutInSecs?: number): Promise<Task> {
+    let response = await this.scyllaManager.heartBeatTask(rn, worker, progress, taskTimeOutInSecs);
     return JSON.parse(response);
   }
 

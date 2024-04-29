@@ -11,7 +11,9 @@ use deadpool_postgres::{Client, Pool};
 use scylla_models::{GetTaskModel, Task, TaskHistory, TaskHistoryType};
 use scylla_operations::task::Persistence;
 use serde_json::{from_value, json};
+use tokio_postgres::error::SqlState;
 use tokio_postgres::types::{Json, ToSql};
+use tokio_postgres::IsolationLevel;
 
 const INSERT_TASK_SQL: &str = "
     INSERT INTO task(data) VALUES ($1) \
@@ -62,16 +64,58 @@ pub trait DbExecute {
 #[async_trait]
 impl DbExecute for PgAdapter {
     async fn execute(&self, sql: &str, params: &[&(dyn ToSql + Sync)]) -> Result<Vec<Task>, PgAdapterError> {
-        let client: Client = self.pool.get().await?;
-        let stmt = client.prepare_cached(sql).await?;
-        let rows = client.query(&stmt, params).await?;
-        Ok(rows
-            .into_iter()
-            .map(|row| {
-                let task_value: Task = from_value(row.get(0)).unwrap();
-                task_value
-            })
-            .collect())
+        let max_tries = 5;
+        let mut try_count = 1;
+        let mut tasks: Option<Vec<Task>> = None;
+        let error: Option<PgAdapterError>;
+        loop {
+            let mut client: Client = self.pool.get().await?;
+            let stmt = client.prepare_cached(sql).await?;
+            let tx = client.build_transaction().isolation_level(IsolationLevel::RepeatableRead).start().await?;
+            match tx.query(&stmt, params).await {
+                Ok(rows) => {
+                    tasks = Some(
+                        rows.into_iter()
+                            .map(|row| {
+                                let task_value: Task = from_value(row.get(0)).unwrap();
+                                task_value
+                            })
+                            .collect(),
+                    );
+                    if let Err(e) = tx.commit().await {
+                        try_count += 1;
+                        log::error!("commit for tx failed : {}", e.to_string());
+                    } else {
+                        error = None;
+                        break;
+                    }
+                }
+                Err(e) => {
+                    if let Err(err) = tx.rollback().await {
+                        log::error!("rollback for tx failed : {}", err.to_string());
+                    }
+                    if try_count == max_tries {
+                        error = Some(PgAdapterError::DbError(e));
+                        break;
+                    } else {
+                        match e.code() {
+                            Some(&SqlState::T_R_SERIALIZATION_FAILURE) => {
+                                try_count += 1;
+                            }
+                            _ => {
+                                log::error!("Error processing transaction {:?}", e);
+                                error = Some(PgAdapterError::DbError(e));
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if let Some(e) = error {
+            return Err(e);
+        }
+        return Ok(tasks.unwrap());
     }
     async fn execute_count(&self, sql: &str, params: &[&(dyn ToSql + Sync)]) -> Result<u64, PgAdapterError> {
         let client: Client = self.pool.get().await?;
@@ -119,6 +163,7 @@ impl Persistence for PgAdapter {
             worker: worker.clone(),
             progress: Some(0.0),
         }));
+
         self.execute(UPDATE_BATCH_TASK_SQL, &[&queue, &limit, &worker_json, &deadline, &updated, &task_history])
             .await
     }
@@ -128,3 +173,7 @@ impl Persistence for PgAdapter {
         self.execute_count(DELETE_BATCH_TASK_SQL, &[&deletion_time]).await
     }
 }
+
+// impl PgAdapter {
+//     async fn retry_operation(&self, count: i32, operation: Box<dyn Fn() -> Result<Vec<Task>, Self::PersistenceError>>) -> Result<Vec<Task>, Self::PersistenceError> {}
+// }

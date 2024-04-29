@@ -79,5 +79,5 @@ export class ScyllaManager {
    * # Errors
    * Convert rust error into `napi::Error`
    */
-  heartBeatTask(rn: string, progress?: number | undefined | null, taskTimeoutInSecs?: number | undefined | null): Promise<string>
+  heartBeatTask(rn: string, worker: string, progress?: number | undefined | null, taskTimeoutInSecs?: number | undefined | null): Promise<string>
 }

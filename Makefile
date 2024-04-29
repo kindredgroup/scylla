@@ -108,6 +108,14 @@ test.json:
 	$(call pp,rust test.json...)
 	cargo +nightly test --workspace --exclude scylla_pg_js -- -Z unstable-options --format json --report-time > coverage/test-report.json
 
+test.load.add_task:
+	$(call pp,run app...)
+	cargo run --release --bin load_add_task
+
+# make withenv RECIPE=test.load.lease_task worker=worker1
+test.load.lease_task:
+	$(call pp,run app...)
+	cargo run --release --bin load_lease_task -- ${worker}
 # PHONY ###########################################################################################
 
 # To force rebuild of not-file-related targets, make the targets "phony".

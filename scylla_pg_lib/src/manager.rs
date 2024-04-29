@@ -54,10 +54,10 @@ impl PgManager {
     }
     /// # Errors
     /// Returns `PgAdapterError`
-    pub async fn heartbeat_task(&self, rn: String, progress: Option<f32>, task_timeout_in_secs: Option<i64>) -> Result<Task, PgAdapterError> {
+    pub async fn heartbeat_task(&self, rn: String, worker: String, progress: Option<f32>, task_timeout_in_secs: Option<i64>) -> Result<Task, PgAdapterError> {
         let update_task_model = UpdateTaskModel {
             rn,
-            worker: None,
+            worker: Some(worker),
             status: None,
             progress,
             operation: UpdateOperation::HeartBeat,

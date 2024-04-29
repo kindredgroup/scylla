@@ -1,6 +1,7 @@
 // $coverage:ignore-start
 use crate::error::ScyllaOperationsError;
 use crate::update_task::*;
+use scylla_models::UpdateOperation::HeartBeat;
 use scylla_models::{Task, TaskError, TaskStatus, UpdateOperation, UpdateTaskModel};
 
 #[test]
@@ -86,7 +87,7 @@ fn validate_status_failure_scenarios() {
         validate_status_operation(&t_running, &utm_ready_status),
         Err(ScyllaOperationsError::InvalidStatusTransition(
             TaskStatus::Running,
-            vec![TaskStatus::Completed, TaskStatus::Cancelled, TaskStatus::Aborted]
+            vec![TaskStatus::Completed, TaskStatus::Cancelled, TaskStatus::Aborted],
         ))
     );
 
@@ -117,21 +118,21 @@ fn validate_status_failure_scenarios() {
         validate_status_operation(&t_aborted, &utm_ready),
         Err(ScyllaOperationsError::TerminalTaskStatus(
             TaskStatus::Aborted,
-            vec![TaskStatus::Ready, TaskStatus::Running]
+            vec![TaskStatus::Ready, TaskStatus::Running],
         ))
     );
     assert_eq!(
         validate_status_operation(&t_cancelled, &utm_ready),
         Err(ScyllaOperationsError::TerminalTaskStatus(
             TaskStatus::Cancelled,
-            vec![TaskStatus::Ready, TaskStatus::Running]
+            vec![TaskStatus::Ready, TaskStatus::Running],
         ))
     );
     assert_eq!(
         validate_status_operation(&t_completed, &utm_ready),
         Err(ScyllaOperationsError::TerminalTaskStatus(
             TaskStatus::Completed,
-            vec![TaskStatus::Ready, TaskStatus::Running]
+            vec![TaskStatus::Ready, TaskStatus::Running],
         ))
     );
 
@@ -369,6 +370,7 @@ fn validate_heart_beat_operation_cases() {
     };
     let t_running = Task {
         status: TaskStatus::Running,
+        owner: Some("worker1".to_string()),
         ..Task::default()
     };
     let t_aborted = Task {
@@ -383,8 +385,26 @@ fn validate_heart_beat_operation_cases() {
         status: TaskStatus::Completed,
         ..Task::default()
     };
+    let utm = UpdateTaskModel {
+        operation: HeartBeat,
+        worker: Some("worker1".to_string()),
+        progress: None,
+        error: None,
+        rn: t_ready.rn.clone(),
+        status: None,
+        task_timeout_in_secs: None,
+    };
+    let utm_wrong_worker = UpdateTaskModel {
+        operation: HeartBeat,
+        worker: Some("worker2".to_string()),
+        progress: None,
+        error: None,
+        rn: t_ready.rn.clone(),
+        status: None,
+        task_timeout_in_secs: None,
+    };
     assert_eq!(
-        validate_heart_beat_operation(&t_ready),
+        validate_heart_beat_operation(&t_ready, &utm),
         Err(ScyllaOperationsError::InvalidOperation(
             UpdateOperation::HeartBeat,
             TaskStatus::Running,
@@ -392,7 +412,7 @@ fn validate_heart_beat_operation_cases() {
         ))
     );
     assert_eq!(
-        validate_heart_beat_operation(&t_aborted),
+        validate_heart_beat_operation(&t_aborted, &utm),
         Err(ScyllaOperationsError::InvalidOperation(
             UpdateOperation::HeartBeat,
             TaskStatus::Running,
@@ -400,7 +420,7 @@ fn validate_heart_beat_operation_cases() {
         ))
     );
     assert_eq!(
-        validate_heart_beat_operation(&t_cancelled),
+        validate_heart_beat_operation(&t_cancelled, &utm),
         Err(ScyllaOperationsError::InvalidOperation(
             UpdateOperation::HeartBeat,
             TaskStatus::Running,
@@ -408,15 +428,19 @@ fn validate_heart_beat_operation_cases() {
         ))
     );
     assert_eq!(
-        validate_heart_beat_operation(&t_completed),
+        validate_heart_beat_operation(&t_completed, &utm),
         Err(ScyllaOperationsError::InvalidOperation(
             UpdateOperation::HeartBeat,
             TaskStatus::Running,
             TaskStatus::Completed,
         ))
     );
+    assert_eq!(
+        validate_heart_beat_operation(&t_running, &utm_wrong_worker),
+        Err(ScyllaOperationsError::ValidationFailed("Only owner can extend the heartbeat.".to_string()))
+    );
     // only running task can send heartbeat
-    validate_heart_beat_operation(&t_running).unwrap();
+    validate_heart_beat_operation(&t_running, &utm).unwrap();
 }
 
 #[test]
@@ -537,7 +561,6 @@ fn validate_lease_operation_cases() {
 }
 
 #[test]
-
 fn prepare_lease_task_cases() {
     let utm = UpdateTaskModel {
         operation: UpdateOperation::Lease,
@@ -784,7 +807,7 @@ fn request_handler_cases() {
     let utm = UpdateTaskModel {
         operation: UpdateOperation::HeartBeat,
         rn: "123".to_string(),
-        worker: None,
+        worker: Some("worker1".to_string()),
         error: None,
         progress: Some(0.7),
         status: None,

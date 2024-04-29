@@ -41,6 +41,7 @@ fn prepare_status_task(mut task: Task, update_task_model: &UpdateTaskModel) -> T
     }
     task
 }
+
 /// # Errors
 /// Returns `ScyllaOperationsError`
 fn validate_yield_operation(task: &Task) -> Result<(), ScyllaOperationsError> {
@@ -67,17 +68,20 @@ fn prepare_yield_task(mut task: Task) -> Task {
     task.history.push(task_yield_history);
     task
 }
+
 /// # Errors
 /// Returns `ScyllaOperationsError`
-fn validate_heart_beat_operation(task: &Task) -> Result<(), ScyllaOperationsError> {
-    if task.status == TaskStatus::Running {
+fn validate_heart_beat_operation(task: &Task, utm: &UpdateTaskModel) -> Result<(), ScyllaOperationsError> {
+    if task.status == TaskStatus::Running && task.owner == utm.worker {
         Ok(())
-    } else {
+    } else if task.status != TaskStatus::Running {
         Err(ScyllaOperationsError::InvalidOperation(
             UpdateOperation::HeartBeat,
             TaskStatus::Running,
             task.status.clone(),
         ))
+    } else {
+        Err(ScyllaOperationsError::ValidationFailed("Only owner can extend the heartbeat.".to_string()))
     }
 }
 
@@ -89,6 +93,7 @@ fn prepare_heart_beat_task(mut task: Task, update_task_model: &UpdateTaskModel) 
     }
     task
 }
+
 /// # Errors
 /// Returns `ScyllaOperationsError`
 fn validate_lease_operation(task: &Task, update_task_model: &UpdateTaskModel) -> Result<(), ScyllaOperationsError> {
@@ -120,6 +125,7 @@ fn prepare_lease_task(mut task: Task, update_task_model: &UpdateTaskModel) -> Ta
     task.history.push(task_assignment_history);
     task
 }
+
 /// # Errors
 /// Returns `ScyllaOperationsError`
 fn validate_reset_operation(task: &Task) -> Result<(), ScyllaOperationsError> {
@@ -163,6 +169,7 @@ fn prepare_reset_task(mut task: Task) -> Task {
     }
     task
 }
+
 /// # Arguments
 /// public function to update task
 /// # Example
@@ -195,7 +202,7 @@ pub fn request_handler(task: Task, update_task_model: &UpdateTaskModel) -> Resul
             Ok(prepare_status_task(task, update_task_model))
         }
         UpdateOperation::HeartBeat => {
-            validate_heart_beat_operation(&task)?;
+            validate_heart_beat_operation(&task, update_task_model)?;
             Ok(prepare_heart_beat_task(task, update_task_model))
         }
         UpdateOperation::Yield => {
@@ -212,5 +219,6 @@ pub fn request_handler(task: Task, update_task_model: &UpdateTaskModel) -> Resul
         }
     }
 }
+
 #[cfg(test)]
 mod tests;

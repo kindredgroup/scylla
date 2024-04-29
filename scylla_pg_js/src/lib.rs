@@ -1,6 +1,7 @@
 // $coverage:ignore-start
 mod models;
 mod validator;
+
 use napi_derive::napi;
 use scylla_models::{AddTaskModel, GetTaskModel, TaskError};
 use scylla_pg_core::config::PGConfig;
@@ -142,15 +143,16 @@ impl ScyllaManager {
     /// # Errors
     /// Convert rust error into `napi::Error`
     #[napi]
-    pub async fn heart_beat_task(&self, rn: String, progress: Option<f64>, task_timeout_in_secs: Option<i64>) -> napi::Result<String> {
+    pub async fn heart_beat_task(&self, rn: String, worker: String, progress: Option<f64>, task_timeout_in_secs: Option<i64>) -> napi::Result<String> {
         let mut progress_value = None;
         if let Some(p) = progress {
             progress_value = Some(p as f32);
         }
-        let task_result = self.pg_manager.heartbeat_task(rn, progress_value, task_timeout_in_secs).await;
+        let task_result = self.pg_manager.heartbeat_task(rn, worker, progress_value, task_timeout_in_secs).await;
         map_lib_response!(task_result)
     }
 }
+
 /// # Errors
 /// Convert rust error into `napi::Error`
 fn map_error_to_napi_error<T: Display>(e: T) -> napi::Error {

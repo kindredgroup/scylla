@@ -16,6 +16,7 @@ struct MockPgAdapter {
     update_batch: fn(queue: String, limit: i32, worker: String, task_timeout_in_secs: i64) -> Result<Vec<Task>, PgAdapterError>,
     delete_batch: fn(retention_time_in_secs: i64) -> Result<u64, PgAdapterError>,
 }
+
 impl MockPgAdapter {
     fn on_insert(mut self, f: fn(Task) -> Result<Task, PgAdapterError>) -> Self {
         self.insert = f;
@@ -107,7 +108,7 @@ async fn pg_manager_mock_adapter() {
             limit: None,
             queue: None,
             worker: None,
-            status: None
+            status: None,
         })
         .await
         .unwrap()[0]
@@ -119,7 +120,7 @@ async fn pg_manager_mock_adapter() {
             rn: "add".to_string(),
             spec: serde_json::Value::default(),
             priority: 1,
-            queue: "s".to_string()
+            queue: "s".to_string(),
         })
         .await
         .unwrap()
@@ -148,7 +149,10 @@ async fn pg_manager_mock_adapter() {
             })
         });
     let pgm = PgManager { pg_adapter: Box::new(mock) };
-    assert_eq!(pgm.heartbeat_task("2".to_string(), None, Some(5)).await.unwrap().rn, "update".to_string());
+    assert_eq!(
+        pgm.heartbeat_task("2".to_string(), "worker".to_string(), None, Some(5)).await.unwrap().rn,
+        "update".to_string()
+    );
     assert_eq!(pgm.complete_task("2".to_string()).await.unwrap().rn, "update".to_string());
     assert_eq!(
         pgm.abort_task(
@@ -156,8 +160,8 @@ async fn pg_manager_mock_adapter() {
             TaskError {
                 code: "123".to_string(),
                 args: serde_json::Value::default(),
-                description: "sd".to_string()
-            }
+                description: "sd".to_string(),
+            },
         )
         .await
         .unwrap()
