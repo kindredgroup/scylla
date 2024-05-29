@@ -50,8 +50,12 @@ impl ScyllaManager {
             pg_database: js_db_config.pg_database,
             pg_pool_size,
         };
+        println!(" Inside init_pg_config...... {pg_config:?}");
+        let pg_manager = PgManager::from_config(&pg_config);
+
+        println!("pg_manager....\n\n {pg_manager:?}",);
         Ok(Self {
-            pg_manager: PgManager::from_config(&pg_config).map_err(map_error_to_napi_error)?,
+            pg_manager: pg_manager.map_err(map_error_to_napi_error)?,
         })
     }
     /// # Errors

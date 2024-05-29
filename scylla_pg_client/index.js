@@ -19,6 +19,8 @@ class Scylla {
     }
     static async initiate(dbConfig) {
         let scyllaManager = await ScyllaManager.initPgConfig(dbConfig);
+        console.log("[SCYLA] dbConfig...", dbConfig);
+        // console.log("[SCYLA] Scylla manager...", await scyllaManager.getTasks({ limit: 20 }))
         let sc = new Scylla(scyllaManager);
         return sc;
     }
@@ -38,7 +40,13 @@ class Scylla {
             ...addTaskModel,
             spec: JSON.stringify(addTaskModel.spec),
         };
-        let response = await this.scyllaManager.addTask(atm);
+        let response = "";
+        try {
+            response = await this.scyllaManager.addTask(atm);
+        }
+        catch (error) {
+            console.error("[SCYLA] Error adding task...", error);
+        }
         return JSON.parse(response);
     }
     async leaseTask(rn, worker, taskTimeOutInSecs) {

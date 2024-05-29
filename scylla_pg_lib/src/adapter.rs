@@ -51,6 +51,7 @@ const DELETE_BATCH_TASK_SQL: &str = "
     DELETE from task where data ->> 'status' in ('completed', 'cancelled', 'aborted') AND data ->> 'updated' < $1
 ";
 
+#[derive(Debug)]
 pub struct PgAdapter {
     pub pool: Pool,
 }

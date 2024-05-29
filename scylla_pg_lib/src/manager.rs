@@ -1,4 +1,7 @@
 //! PG Manager used by external crates to deal with Database operations. `PGAdapter` is not accessible without `PGManager`
+
+use std::fmt::Debug;
+
 use crate::adapter::PgAdapter;
 use crate::error::PgAdapterError;
 use scylla_models::{AddTaskModel, GetTaskModel, Task, TaskError, TaskStatus, UpdateOperation, UpdateTaskModel};
@@ -6,6 +9,7 @@ use scylla_operations::task::{Persistence, ScyllaOperations};
 use scylla_pg_core::config::PGConfig;
 use scylla_pg_core::connection::get_pool;
 
+#[derive(Debug)]
 pub struct PgManager {
     pg_adapter: Box<dyn Persistence<PersistenceError = PgAdapterError> + Send + Sync>,
 }

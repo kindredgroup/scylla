@@ -23,7 +23,7 @@ impl ScyllaOperations {
     }
 }
 #[async_trait]
-pub trait Persistence
+pub trait Persistence: std::fmt::Debug
 where
     Self::PersistenceError: From<ScyllaOperationsError>,
 {

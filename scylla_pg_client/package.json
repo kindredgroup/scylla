@@ -14,7 +14,7 @@
   "email": "asharmaanil@gmail.com",
   "license": "MIT",
   "dependencies": {
-    "scylla_pg_js": "0.1.24"
+    "scylla_pg_js": "file:../scylla_pg_js"
   },
   "devDependencies": {
     "@ava/typescript": "^4.1.0",

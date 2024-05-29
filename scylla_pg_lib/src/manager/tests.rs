@@ -8,6 +8,7 @@ use super::PgManager;
 use async_trait::async_trait;
 use scylla_models::*;
 
+#[derive(Debug)]
 struct MockPgAdapter {
     insert: fn(Task) -> Result<Task, PgAdapterError>,
     update: fn(Task) -> Result<Task, PgAdapterError>,

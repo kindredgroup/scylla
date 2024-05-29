@@ -1,12 +1,12 @@
-import {JsAddTaskModel, JsDbConfig, JsGetTasksModel, ScyllaManager} from "scylla_pg_js";
+import { JsAddTaskModel, JsDbConfig, JsGetTasksModel, ScyllaManager } from "scylla_pg_js";
 
 
 export enum TaskStatus {
-  running="running",
-  ready="ready",
-  cancelled="cancelled",
-  completed="completed",
-  aborted="aborted"
+  running = "running",
+  ready = "ready",
+  cancelled = "cancelled",
+  completed = "completed",
+  aborted = "aborted"
 }
 
 export enum TaskHistoryType {
@@ -71,7 +71,9 @@ class Scylla {
     this.scyllaManager = sc
   }
   public static async initiate(dbConfig: DbConfig): Promise<Scylla> {
-   let scyllaManager: ScyllaManager = await ScyllaManager.initPgConfig(dbConfig as JsDbConfig)
+    let scyllaManager: ScyllaManager = await ScyllaManager.initPgConfig(dbConfig as JsDbConfig)
+    console.log("[SCYLA] dbConfig...", dbConfig)
+    // console.log("[SCYLA] Scylla manager...", await scyllaManager.getTasks({ limit: 20 }))
     let sc = new Scylla(scyllaManager);
     return sc;
   }
@@ -85,13 +87,20 @@ class Scylla {
   }
   public async addTask(addTaskModel: AddTaskModel): Promise<Task> {
     if (!addTaskModel || !addTaskModel.spec) {
-      throw Error ( "Invalid argument. addTaskModel.spec cannot be undefined" );
+      throw Error("Invalid argument. addTaskModel.spec cannot be undefined");
     }
     let atm: JsAddTaskModel = {
       ...addTaskModel,
       spec: JSON.stringify(addTaskModel.spec),
     }
-    let response = await this.scyllaManager.addTask(atm);
+
+    let response: string = ""
+    try {
+      response = await this.scyllaManager.addTask(atm);
+
+    } catch (error) {
+      console.error("[SCYLA] Error adding task...", error)
+    }
     return JSON.parse(response);
   }
 
@@ -100,10 +109,10 @@ class Scylla {
     return JSON.parse(response);
   }
 
-    public async leaseNTasks(queue: string, limit: number, worker: string, taskTimeOutInSecs?: number): Promise<Task[]> {
-      let response = await this.scyllaManager.leaseNTasks(queue, limit, worker, taskTimeOutInSecs);
-      return JSON.parse(response);
-    }
+  public async leaseNTasks(queue: string, limit: number, worker: string, taskTimeOutInSecs?: number): Promise<Task[]> {
+    let response = await this.scyllaManager.leaseNTasks(queue, limit, worker, taskTimeOutInSecs);
+    return JSON.parse(response);
+  }
 
   public async heartBeatTask(rn: string, worker: string, progress?: number, taskTimeOutInSecs?: number): Promise<Task> {
     let response = await this.scyllaManager.heartBeatTask(rn, worker, progress, taskTimeOutInSecs);
@@ -126,10 +135,10 @@ class Scylla {
   }
 
   public async abortTask(rn: string, taskError: TaskError): Promise<Task> {
-    if (!taskError || !taskError.args){
-      throw Error ( "Invalid argument. taskError.args cannot be undefined" );
+    if (!taskError || !taskError.args) {
+      throw Error("Invalid argument. taskError.args cannot be undefined");
     }
-    let response = await this.scyllaManager.abortTask(rn, {...taskError, args: JSON.stringify(taskError.args)});
+    let response = await this.scyllaManager.abortTask(rn, { ...taskError, args: JSON.stringify(taskError.args) });
     return JSON.parse(response);
   }
 }
