@@ -1,3 +1,4 @@
+
 [workspace]
 members = [
   "scylla_models",
@@ -7,6 +8,7 @@ members = [
   "scylla_pg_js",
   "scylla_pg_core"
 ]
+resolver = "2"
 
 [workspace.dependencies]
 
