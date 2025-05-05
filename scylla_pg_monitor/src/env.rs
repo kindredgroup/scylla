@@ -5,8 +5,8 @@ use std::{collections::HashMap, str::FromStr};
 /// T must implement trait `std::str::FromStr`
 ///
 /// # Example
-/// ```ignore
-/// # use scylla_pg_monitor::env::parse_from_string;
+/// ```
+///  use scylla_pg_monitor::env::parse_from_string;
 /// let x = parse_from_string::<u32>("20".to_string());
 /// assert_eq!(x, Ok(20));
 /// ```
@@ -22,8 +22,10 @@ where
 /// Gets the value for the key passed to `get_env_var_value`
 ///
 /// # Example
-/// ```no_run
-/// # use scylla_pg_monitor::env::get_env_var_value;
+/// ```
+/// use std::env;
+/// env::set_var("TEST", "valueA");
+/// use scylla_pg_monitor::env::get_env_var_value;
 /// let x = get_env_var_value("TEST");
 /// ```
 ///
@@ -35,7 +37,7 @@ pub fn get_env_var_value(key: &str) -> Result<String, String> {
 /// Returns all the env variables matching a prefix
 ///
 /// # Example
-/// ```no_run
+/// ```
 /// # use scylla_pg_monitor::env::get_env_vars_with_prefix;
 /// let x = get_env_vars_with_prefix("TEST");
 /// ```
@@ -54,8 +56,10 @@ pub fn get_env_vars_with_prefix(prefix: &str) -> Option<HashMap<String, String>>
 /// - When only (key) is passed, returns the value as a `String`.
 ///
 /// ## Example
-/// ```no_run
-/// # use scylla_pg_monitor::env_var;
+/// ```
+/// use scylla_pg_monitor::env_var;
+/// use std::env;
+/// env::set_var("keyA", "valueA");
 /// let x:String = env_var!("keyA"); // returns `valueA` as a String.
 /// assert_eq!(x, "valueA".to_string());
 /// ```
@@ -64,8 +68,11 @@ pub fn get_env_vars_with_prefix(prefix: &str) -> Option<HashMap<String, String>>
 /// read for the key and the value is parsed into the `type` passed as argument.
 ///
 /// ## Example
-/// ```no_run
-/// # use scylla_pg_monitor::env_var;
+/// ```
+/// use scylla_pg_monitor::env_var;
+/// use std::env;
+/// env::set_var("keyA", "20");
+/// let x:String = env_var!("keyA"); // returns `valueA` as a String.
 /// let x:u32 = env_var!("keyA", u32); // returns `20` as a String.
 /// assert_eq!(x, 20);
 /// ```
@@ -77,10 +84,12 @@ pub fn get_env_vars_with_prefix(prefix: &str) -> Option<HashMap<String, String>>
 ///     - each value of the vec is parsed into the `type` passed as argument.
 ///
 /// ## Example
-/// ```no_run
-/// # use scylla_pg_monitor::env_var;
-/// let x:Vec<String> = env_var!("keyA", Vec<String>); // holds value `"test,1,2,3"` returns `["test", "1", "2", "3"]` as a String.
-/// assert_eq!(x[0], "test".to_string());
+/// ```
+/// use scylla_pg_monitor::env_var;
+/// use std::env;
+/// env::set_var("keyA", "testA, testB");
+/// let x:Vec<String> = env_var!("keyA", Vec<String>);
+/// assert_eq!(x[0], "testA".to_string());
 /// ```
 #[macro_export]
 macro_rules! env_var {

@@ -1,6 +1,6 @@
 {
   "name": "scylla_pg_js",
-  "version": "0.1.23",
+  "version": "0.1.25",
   "main": "index.js",
   "types": "index.d.ts",
   "napi": {
@@ -38,12 +38,12 @@
   },
   "packageManager": "yarn@3.3.1",
   "optionalDependencies": {
-    "scylla_pg_js-win32-x64-msvc": "0.1.23",
-    "scylla_pg_js-darwin-x64": "0.1.23",
-    "scylla_pg_js-linux-x64-gnu": "0.1.23",
-    "scylla_pg_js-linux-x64-musl": "0.1.23",
-    "scylla_pg_js-linux-arm64-musl": "0.1.23",
-    "scylla_pg_js-darwin-arm64": "0.1.23",
-    "scylla_pg_js-darwin-universal": "0.1.23"
+    "scylla_pg_js-win32-x64-msvc": "0.1.25",
+    "scylla_pg_js-darwin-x64": "0.1.25",
+    "scylla_pg_js-linux-x64-gnu": "0.1.25",
+    "scylla_pg_js-linux-x64-musl": "0.1.25",
+    "scylla_pg_js-linux-arm64-musl": "0.1.25",
+    "scylla_pg_js-darwin-arm64": "0.1.25",
+    "scylla_pg_js-darwin-universal": "0.1.25"
   }
 }

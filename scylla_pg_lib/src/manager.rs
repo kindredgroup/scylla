@@ -1,6 +1,7 @@
 //! PG Manager used by external crates to deal with Database operations. `PGAdapter` is not accessible without `PGManager`
 use crate::adapter::PgAdapter;
 use crate::error::PgAdapterError;
+use log::debug;
 use scylla_models::{AddTaskModel, GetTaskModel, Task, TaskError, TaskStatus, UpdateOperation, UpdateTaskModel};
 use scylla_operations::task::{Persistence, ScyllaOperations};
 use scylla_pg_core::config::PGConfig;
@@ -36,6 +37,7 @@ impl PgManager {
     /// # Errors
     /// Returns `PgAdapterError`
     pub async fn fetch_tasks(&self, get_task_model: GetTaskModel) -> Result<Vec<Task>, PgAdapterError> {
+        debug!("fetch_tasks: get_task_model {get_task_model:?}");
         self.pg_adapter.query(&get_task_model).await
     }
     /// # Errors
@@ -111,7 +113,7 @@ impl PgManager {
     /// # Errors
     /// Returns `PgAdapterError`
     pub async fn lease_n_tasks(&self, queue: String, limit: i32, worker: String, task_timeout_in_secs: Option<i64>) -> Result<Vec<Task>, PgAdapterError> {
-        self.pg_adapter.update_batch(queue, limit, worker, task_timeout_in_secs.unwrap_or(10)).await
+        self.pg_adapter.lease_batch(queue, limit, worker, task_timeout_in_secs.unwrap_or(10)).await
     }
     /// # Errors
     /// Returns `PgAdapterError`
@@ -151,8 +153,14 @@ impl PgManager {
 
     /// # Errors
     /// Returns `PgAdapterError`
-    pub async fn delete_terminated_tasks(&self, retention_tim_in_secs: i64) -> Result<u64, PgAdapterError> {
-        self.pg_adapter.delete_batch(retention_tim_in_secs).await
+    pub async fn delete_terminated_tasks(&self, retention_time_in_secs: i64) -> Result<u64, PgAdapterError> {
+        self.pg_adapter.delete_batch(retention_time_in_secs).await
+    }
+
+    /// # Errors
+    /// Returns `PgAdapterError`
+    pub async fn reset_batch(&self) -> Result<Vec<Task>, PgAdapterError> {
+        self.pg_adapter.reset_batch().await
     }
 }
 

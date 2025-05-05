@@ -8,7 +8,7 @@ pub struct Analyser {
     pub tx: tokio::sync::mpsc::Sender<u64>,
     rx: tokio::sync::mpsc::Receiver<u64>,
     min_time: Option<DateTime<Utc>>,
-    max_time: Option<DateTime<Utc>>
+    max_time: Option<DateTime<Utc>>,
 }
 
 impl Analyser {
@@ -20,12 +20,12 @@ impl Analyser {
             tx,
             rx,
             min_time: None,
-            max_time: None
+            max_time: None,
         }
     }
 
     fn calculate_rate(&self, num_of_samples: f64, max_time: DateTime<Utc>, min_time: DateTime<Utc>) -> u64 {
-        let rate =  (num_of_samples/ (max_time.timestamp_millis() as f64 - min_time.timestamp_millis() as f64)) * 1000 as f64;
+        let rate = (num_of_samples / (max_time.timestamp_millis() as f64 - min_time.timestamp_millis() as f64)) * 1000.0;
         rate.round() as u64
     }
 
@@ -51,31 +51,24 @@ impl Analyser {
         }
     }
 
-
-
     pub async fn start(&mut self) {
-        loop {
-            match self.rx.recv().await {
-                Some(val) => {
-                    self.histogram.record(val);
-                    if self.min_time.is_none() {
-                        self.min_time = Some(Utc::now())
-                    } else {
-                        self.max_time = Some(Utc::now())
-                    }
-                },
-                None => {break;}
+        while let Some(val) = self.rx.recv().await {
+            let _ = self.histogram.record(val);
+            if self.min_time.is_none() {
+                self.min_time = Some(Utc::now())
+            } else {
+                self.max_time = Some(Utc::now())
             }
         }
     }
 
     pub async fn run(&mut self) {
         let mut interval = tokio::time::interval(Duration::from_secs(self.print_interval));
-        loop{
+        loop {
             tokio::select! {
                 value = self.rx.recv() => {
                     if let Some(val) = value {
-                        self.histogram.record(val);
+                        let _ = self.histogram.record(val);
                         if self.min_time.is_none() {
                             self.min_time = Some(Utc::now())
                         } else {
@@ -88,6 +81,5 @@ impl Analyser {
                 }
             }
         }
-        
     }
 }
