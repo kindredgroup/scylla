@@ -16,10 +16,10 @@ pub async fn monitor_tasks() {
     loop {
         tokio::time::sleep(Duration::from_secs(pg_monitor_config.poll_interval)).await;
         reset_tasks(&pgm).await;
-        // match pgm.delete_terminated_tasks(pg_monitor_config.task_retention_time).await {
-        //     Ok(count) => log::info!("tasks deleted: {count}"),
-        //     Err(e) => log::error!("error occurred while deleting terminated tasks {e}"),
-        // };
+        match pgm.delete_terminated_tasks(pg_monitor_config.task_retention_time).await {
+            Ok(count) => log::info!("tasks deleted: {count}"),
+            Err(e) => log::error!("error occurred while deleting terminated tasks {e}"),
+        };
     }
 }
 

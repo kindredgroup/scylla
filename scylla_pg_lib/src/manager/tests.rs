@@ -110,6 +110,12 @@ async fn pg_manager_mock_adapter() {
                 rn: "update".to_string(),
                 ..Task::default()
             })
+        })
+        .on_reset_batch(|| {
+            Ok(vec![Task {
+                rn: "reset".to_string(),
+                ..Task::default()
+            }])
         });
     let pgm = PgManager { pg_adapter: Box::new(mock) };
     assert_eq!(pgm.fetch_task("rn".to_string()).await.unwrap().rn, "query_by_rn".to_string());
@@ -140,6 +146,8 @@ async fn pg_manager_mock_adapter() {
     // update cases
     assert_eq!(pgm.lease_task("2".to_string(), "w".to_string(), None).await.unwrap().rn, "update".to_string());
     assert_eq!(pgm.cancel_task("2".to_string()).await.unwrap().rn, "update".to_string());
+    // reset
+    assert_eq!(pgm.reset_batch().await.unwrap().first().unwrap().rn, "reset".to_string());
 
     //heartbeat
     let mock = MockPgAdapter::default()

@@ -2,7 +2,6 @@
 use crate::error::ScyllaOperationsError;
 use crate::update_task::request_handler;
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
 use scylla_models::{AddTaskModel, GetTaskModel, Task, UpdateTaskModel};
 
 pub struct ScyllaOperations {}
