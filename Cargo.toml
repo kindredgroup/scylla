@@ -17,3 +17,5 @@ log = { version = "0.4", features = [
   "std",
   "kv_unstable_serde",
 ] }
+
+profiler = "true"
