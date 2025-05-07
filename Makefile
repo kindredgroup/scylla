@@ -112,10 +112,15 @@ test.load.add_task:
 	$(call pp,run app...)
 	cargo run --release --bin load_add_task
 
-# make withenv RECIPE=test.load.lease_task worker=worker1
+# make withenv RECIPE=test.load.lease_task workers=5
 test.load.lease_task:
 	$(call pp,run app...)
-	cargo run --release --bin load_lease_task -- ${worker}
+	cargo run --release --bin load_lease_task -- ${workers}
+
+# make withenv RECIPE=test.load.get_and_lease_task workers=5
+test.load.get_and_lease_task:
+	$(call pp,run app...)
+	cargo run --release --bin load_get_and_lease_task -- ${workers}
 # PHONY ###########################################################################################
 
 # To force rebuild of not-file-related targets, make the targets "phony".

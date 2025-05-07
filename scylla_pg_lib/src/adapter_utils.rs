@@ -11,7 +11,7 @@ pub fn prepare_insert_task(task: &Task) -> serde_json::Value {
 /// Returns `PgAdapterError::DuplicateTask` Error
 /// # Panics
 /// In case return count is more than 1
-pub fn handle_insert_return<'a>(tasks: &'a Vec<Task>, original_task: &Task) -> Result<&'a Task, PgAdapterError> {
+pub fn handle_insert_return<'a>(tasks: &'a [Task], original_task: &Task) -> Result<&'a Task, PgAdapterError> {
     match tasks.len() {
         0 => Err(PgAdapterError::DuplicateTask(original_task.rn.clone())),
         1 => Ok(&tasks[0]),
@@ -35,7 +35,7 @@ pub fn prepare_update_task(task: &Task) -> UpdateParams {
 /// Returns `PgAdapterError::NoTaskFound` Error
 /// # Panics
 /// In case return count is more than 1
-pub fn handle_update_return<'a>(tasks: &'a Vec<Task>, original_task: &'a Task) -> Result<&'a Task, PgAdapterError> {
+pub fn handle_update_return<'a>(tasks: &'a [Task], original_task: &'a Task) -> Result<&'a Task, PgAdapterError> {
     match tasks.len() {
         0 => Err(PgAdapterError::NoTaskFound(original_task.rn.clone())),
         1 => Ok(&tasks[0]),
@@ -60,7 +60,7 @@ pub fn prepare_query_task(get_task_model: &GetTaskModel) -> QueryParams {
 /// Returns `PgAdapterError::NoTaskFound` Error
 /// # Panics
 /// In case return count is more than 1
-pub fn handle_query_by_rn_return<'a>(tasks: &'a Vec<Task>, rn: &str) -> Result<&'a Task, PgAdapterError> {
+pub fn handle_query_by_rn_return<'a>(tasks: &'a [Task], rn: &str) -> Result<&'a Task, PgAdapterError> {
     match tasks.len() {
         0 => Err(PgAdapterError::NoTaskFound(rn.to_owned())),
         1 => Ok(&tasks[0]),
@@ -88,9 +88,9 @@ mod tests {
             ..Task::default()
         };
 
-        assert!(handle_insert_return(&vec![], &original_task).is_err());
+        assert!(handle_insert_return(&[], &original_task).is_err());
         assert_eq!(
-            handle_insert_return(&vec![], &original_task).unwrap_err().to_string(),
+            handle_insert_return(&[], &original_task).unwrap_err().to_string(),
             PgAdapterError::DuplicateTask(original_task.rn.to_owned()).to_string()
         );
         let ret_t = Task {
@@ -99,7 +99,7 @@ mod tests {
             ..Task::default()
         };
         // In case single item is returned from db. That will be retruned back
-        assert_eq!(*handle_insert_return(&vec![ret_t.clone()], &original_task).unwrap(), ret_t);
+        assert_eq!(*handle_insert_return(&[ret_t.clone()], &original_task).unwrap(), ret_t);
     }
 
     #[test]
@@ -152,7 +152,7 @@ mod tests {
             status: TaskStatus::Running,
             ..Task::default()
         };
-        assert_eq!(*handle_update_return(&vec![ret_t.clone()], &original_t).unwrap(), ret_t)
+        assert_eq!(*handle_update_return(&[ret_t.clone()], &original_t).unwrap(), ret_t)
     }
 
     #[test]
@@ -225,7 +225,7 @@ mod tests {
             status: TaskStatus::Running,
             ..Task::default()
         };
-        assert_eq!(*handle_query_by_rn_return(&vec![ret_t.clone()], &original_t.rn).unwrap(), ret_t)
+        assert_eq!(*handle_query_by_rn_return(&[ret_t.clone()], &original_t.rn).unwrap(), ret_t)
     }
 
     #[test]

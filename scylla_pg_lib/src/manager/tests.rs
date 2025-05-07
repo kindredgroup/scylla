@@ -13,7 +13,8 @@ struct MockPgAdapter {
     update: fn(Task) -> Result<Task, PgAdapterError>,
     query: fn(&GetTaskModel) -> Result<Vec<Task>, PgAdapterError>,
     query_by_rn: fn(String) -> Result<Task, PgAdapterError>,
-    update_batch: fn(queue: String, limit: i32, worker: String, task_timeout_in_secs: i64) -> Result<Vec<Task>, PgAdapterError>,
+    reset_batch: fn() -> Result<Vec<Task>, PgAdapterError>,
+    lease_batch: fn(queue: String, limit: i32, worker: String, task_timeout_in_secs: i64) -> Result<Vec<Task>, PgAdapterError>,
     delete_batch: fn(retention_time_in_secs: i64) -> Result<u64, PgAdapterError>,
 }
 
@@ -37,6 +38,11 @@ impl MockPgAdapter {
         self.query_by_rn = f;
         self
     }
+
+    fn on_reset_batch(mut self, f: fn() -> Result<Vec<Task>, PgAdapterError>) -> Self {
+        self.reset_batch = f;
+        self
+    }
 }
 
 impl Default for MockPgAdapter {
@@ -46,8 +52,9 @@ impl Default for MockPgAdapter {
             update: |_| unimplemented!(),
             query: |_| unimplemented!(),
             query_by_rn: |_| unimplemented!(),
-            update_batch: |_, _, _, _| unimplemented!(),
+            lease_batch: |_, _, _, _| unimplemented!(),
             delete_batch: |_| unimplemented!(),
+            reset_batch: || unimplemented!(),
         }
     }
 }
@@ -71,11 +78,14 @@ impl Persistence for MockPgAdapter {
         (self.query_by_rn)(rn)
     }
 
-    async fn update_batch(&self, queue: String, limit: i32, worker: String, task_timeout_in_secs: i64) -> Result<Vec<Task>, Self::PersistenceError> {
-        (self.update_batch)(queue, limit, worker, task_timeout_in_secs)
+    async fn lease_batch(&self, queue: String, limit: i32, worker: String, task_timeout_in_secs: i64) -> Result<Vec<Task>, Self::PersistenceError> {
+        (self.lease_batch)(queue, limit, worker, task_timeout_in_secs)
     }
     async fn delete_batch(&self, retention_time_in_secs: i64) -> Result<u64, Self::PersistenceError> {
         (self.delete_batch)(retention_time_in_secs)
+    }
+    async fn reset_batch(&self) -> Result<Vec<Task>, PgAdapterError> {
+        (self.reset_batch)()
     }
 }
 
@@ -100,6 +110,12 @@ async fn pg_manager_mock_adapter() {
                 rn: "update".to_string(),
                 ..Task::default()
             })
+        })
+        .on_reset_batch(|| {
+            Ok(vec![Task {
+                rn: "reset".to_string(),
+                ..Task::default()
+            }])
         });
     let pgm = PgManager { pg_adapter: Box::new(mock) };
     assert_eq!(pgm.fetch_task("rn".to_string()).await.unwrap().rn, "query_by_rn".to_string());
@@ -130,6 +146,8 @@ async fn pg_manager_mock_adapter() {
     // update cases
     assert_eq!(pgm.lease_task("2".to_string(), "w".to_string(), None).await.unwrap().rn, "update".to_string());
     assert_eq!(pgm.cancel_task("2".to_string()).await.unwrap().rn, "update".to_string());
+    // reset
+    assert_eq!(pgm.reset_batch().await.unwrap().first().unwrap().rn, "reset".to_string());
 
     //heartbeat
     let mock = MockPgAdapter::default()
