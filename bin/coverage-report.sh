@@ -30,14 +30,15 @@ zip -0 ccov.zip `find . \( -name "${app_name}*.gc*" \) -print`
 echo "Generating HTML coverage report for $app_name"
 rm -rf coverage 2> /dev/null || true
 mkdir coverage
-grcov ccov.zip --branch -s . --llvm --ignore-not-existing --ignore "/*" --excl-start "\\\$coverage:ignore-start" --excl-stop "\\\$coverage:ignore-end" --excl-line "(//!|///|$coverage:ignore|unreachable!())" -t html -o coverage
+llvm-profdata merg -sparse **/*.profraw -o ${app_name}.profdata;
+# grcov ccov.zip --branch -s . --llvm --ignore-not-existing --ignore "/*" --excl-start "\\\$coverage:ignore-start" --excl-stop "\\\$coverage:ignore-end" --excl-line "(//!|///|$coverage:ignore|unreachable!())" -t html -o coverage
 
 echo "Generating LCOV coverage report for $app_name"
 rm lcov.info 2> /dev/null || true
-grcov ccov.zip -s . --llvm  --ignore-not-existing --ignore "/*" --excl-start "\\\$coverage:ignore-start" --excl-stop "\\\$coverage:ignore-end" --excl-line "(//!|///|$coverage:ignore|unreachable!())" -t lcov -o lcov.info
+# grcov ccov.zip -s . --llvm  --ignore-not-existing --ignore "/*" --excl-start "\\\$coverage:ignore-start" --excl-stop "\\\$coverage:ignore-end" --excl-line "(//!|///|$coverage:ignore|unreachable!())" -t lcov -o lcov.info
 
 # Clean up
-rm ccov.zip
+# rm ccov.zip
 
 make withenv RECIPE=test.json
 
