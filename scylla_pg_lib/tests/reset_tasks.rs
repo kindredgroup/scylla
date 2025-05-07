@@ -37,7 +37,7 @@ async fn reset_batch_tasks() {
     pgm.insert_task(atm2).await.unwrap();
     pgm.insert_task(atm3).await.unwrap();
     pgm.insert_task(atm4).await.unwrap();
-    let leased_tasks = pgm.lease_n_tasks("test".to_string(), 2, "worker".to_string(), Some(-1)).await.unwrap();
+    let _ = pgm.lease_n_tasks("test".to_string(), 2, "worker".to_string(), Some(-1)).await.unwrap();
     let reset_tasks = pgm.reset_batch().await.unwrap();
     assert_eq!(reset_tasks.len(), 2);
     assert_ne!(reset_tasks.iter().position(|t| t.rn == *"lease_success1"), None);
