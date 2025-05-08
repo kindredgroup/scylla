@@ -78,10 +78,10 @@ jobs:
           node-version: 18
           check-latest: true
       - name: Install toolchain
-        uses: dtolnay/rust-toolchain@1.75.0
+        uses: dtolnay/rust-toolchain@1.81.0
         if: ${{ !matrix.settings.docker }}
         with:
-          toolchain: 1.75.0
+          toolchain: 1.81.0
           target: ${{ matrix.settings.target }}
       - name: Cache cargo
         uses: actions/cache@v4
@@ -141,7 +141,7 @@ jobs:
 
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bindings-${{ matrix.settings.target }}
           path: scylla_pg_js/${{ env.APP_NAME }}.*.node
@@ -157,7 +157,7 @@ jobs:
       - build
     if: needs.build.result == 'success'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup node
         uses: actions/setup-node@v3
         with:
@@ -166,7 +166,7 @@ jobs:
       - name: Install dependencies
         run: cd scylla_pg_js && npm install
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: scylla_pg_js/artifacts
       - run: cd scylla_pg_js/artifacts && cp -R **/*.node .
