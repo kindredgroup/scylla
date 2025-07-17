@@ -20,9 +20,9 @@ COPY ./ .
 RUN cargo build --release --bin scylla_pg_monitor
 
 #
-# Run image based on buster-slim to reduce image size while still using glibc
+# Run image based on bookworm-slim to reduce image size while still using glibc
 #
-FROM debian:buster-slim AS RUN
+FROM debian:bookworm-slim AS RUN
 
 WORKDIR /opt/build
 # Import users from build
