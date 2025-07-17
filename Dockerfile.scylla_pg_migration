@@ -1,4 +1,4 @@
-FROM rust:1.81.0 AS BUILD
+FROM rust:1.81.0-slim-bookworm AS BUILD
 # Install software
 RUN update-ca-certificates && apt-get update && apt-get install -y libsasl2-dev
 
