@@ -78,10 +78,10 @@ jobs:
           node-version: 18
           check-latest: true
       - name: Install toolchain
-        uses: dtolnay/rust-toolchain@1.81.0
+        uses: dtolnay/rust-toolchain@1.82.0
         if: ${{ !matrix.settings.docker }}
         with:
-          toolchain: 1.81.0
+          toolchain: 1.82.0
           target: ${{ matrix.settings.target }}
       - name: Cache cargo
         uses: actions/cache@v4
