@@ -51,8 +51,9 @@ impl PgManager {
             operation: UpdateOperation::Lease,
             error: None,
             task_timeout_in_secs,
+            metrics: None,
         };
-        self.update_task(&update_task_model, None).await
+        self.update_task(&update_task_model).await
     }
     /// # Errors
     /// Returns `PgAdapterError`
@@ -65,8 +66,9 @@ impl PgManager {
             operation: UpdateOperation::HeartBeat,
             error: None,
             task_timeout_in_secs,
+            metrics: None,
         };
-        self.update_task(&update_task_model, None).await
+        self.update_task(&update_task_model).await
     }
     /// # Errors
     /// Returns `PgAdapterError`
@@ -79,8 +81,9 @@ impl PgManager {
             operation: UpdateOperation::Status,
             error: None,
             task_timeout_in_secs: None,
+            metrics: None,
         };
-        self.update_task(&update_task_model, None).await
+        self.update_task(&update_task_model).await
     }
     /// # Errors
     /// Returns `PgAdapterError`
@@ -93,8 +96,13 @@ impl PgManager {
             operation: UpdateOperation::Status,
             error: None,
             task_timeout_in_secs: None,
+            metrics: if let Some(metrics_str) = metrics {
+                serde_json::from_str(&metrics_str).ok() // set to None if deserialization fails
+            } else {
+                None
+            },
         };
-        self.update_task(&update_task_model, metrics).await
+        self.update_task(&update_task_model).await
     }
     /// # Errors
     /// Returns `PgAdapterError`
@@ -107,8 +115,9 @@ impl PgManager {
             operation: UpdateOperation::Status,
             error: Some(error),
             task_timeout_in_secs: None,
+            metrics: None,
         };
-        self.update_task(&update_task_model, None).await
+        self.update_task(&update_task_model).await
     }
     /// # Errors
     /// Returns `PgAdapterError`
@@ -126,8 +135,9 @@ impl PgManager {
             operation: UpdateOperation::Yield,
             error: None,
             task_timeout_in_secs: None,
+            metrics: None,
         };
-        self.update_task(&update_task_model, None).await
+        self.update_task(&update_task_model).await
     }
     /// # Errors
     /// Returns `PgAdapterError`
@@ -140,22 +150,15 @@ impl PgManager {
             operation: UpdateOperation::Reset,
             error: None,
             task_timeout_in_secs: None,
+            metrics: None,
         };
-        self.update_task(&update_task_model, None).await
+        self.update_task(&update_task_model).await
     }
     /// # Errors
     /// Returns `PgAdapterError`
-    async fn update_task(&self, utm: &UpdateTaskModel, metrics: Option<String>) -> Result<Task, PgAdapterError> {
+    async fn update_task(&self, utm: &UpdateTaskModel) -> Result<Task, PgAdapterError> {
         let task_to_update = self.fetch_task(utm.rn.clone()).await?;
-        let mut task = ScyllaOperations::update_task_operation(utm, task_to_update)?;
-
-        if let Some(metrics) = metrics {
-            if let Ok(metrics_value) = serde_json::from_str::<serde_json::Value>(&metrics) {
-                task.spec["metrics"] = metrics_value;
-            }
-            // If deserialization fails, we silently ignore the metrics
-        }
-
+        let task = ScyllaOperations::update_task_operation(utm, task_to_update)?;
         self.pg_adapter.update(task).await
     }
 

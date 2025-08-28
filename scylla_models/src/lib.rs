@@ -12,7 +12,7 @@ pub struct AddTaskModel {
     pub queue: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct UpdateTaskModel {
     pub rn: String,
     pub operation: UpdateOperation,
@@ -21,6 +21,7 @@ pub struct UpdateTaskModel {
     pub worker: Option<String>,
     pub progress: Option<f32>,
     pub task_timeout_in_secs: Option<i64>,
+    pub metrics: Option<Value>,
 }
 
 #[derive(Debug)]
@@ -49,6 +50,12 @@ pub enum UpdateOperation {
     Status,
     Lease,
     Reset,
+}
+
+impl Default for UpdateOperation {
+    fn default() -> Self {
+        UpdateOperation::Status
+    }
 }
 impl Display for UpdateOperation {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -129,6 +136,7 @@ pub struct Task {
     pub owner: Option<String>,
     pub errors: Vec<TaskError>,
     pub history: Vec<TaskHistory>,
+    pub metrics: Option<Value>,
 }
 impl Default for Task {
     fn default() -> Self {
@@ -145,6 +153,7 @@ impl Default for Task {
             owner: None,
             errors: Vec::default(),
             history: Vec::default(),
+            metrics: None,
         }
     }
 }
@@ -177,10 +186,11 @@ mod tests {
             status: None,
             worker: None,
             task_timeout_in_secs: None,
+            metrics: None,
         };
         assert_eq!(
             format!("{:?}", utm),
-            "UpdateTaskModel { rn: \"1.2.3\", operation: HeartBeat, status: None, error: None, worker: None, progress: None, task_timeout_in_secs: None }"
+            "UpdateTaskModel { rn: \"1.2.3\", operation: HeartBeat, status: None, error: None, worker: None, progress: None, task_timeout_in_secs: None, metrics: None }"
         );
     }
     #[test]
@@ -268,7 +278,7 @@ mod tests {
             ..Task::default()
         };
         // debug trait
-        assert_eq!(format!("{:?}", t), format!("Task {{ rn: \"\", spec: Null, status: Ready, queue: \"\", progress: 0.0, priority: 0, created: {0:?}, updated: {0:?}, deadline: None, owner: None, errors: [], history: [] }}", t_now));
+        assert_eq!(format!("{:?}", t), format!("Task {{ rn: \"\", spec: Null, status: Ready, queue: \"\", progress: 0.0, priority: 0, created: {0:?}, updated: {0:?}, deadline: None, owner: None, errors: [], history: [], metrics: None }}", t_now));
         // default()
         let t = Task {
             created: t_now,
@@ -290,6 +300,7 @@ mod tests {
                 owner: None,
                 errors: Vec::default(),
                 history: Vec::default(),
+                metrics: None,
             }
         )
     }
