@@ -116,8 +116,8 @@ impl ScyllaManager {
     /// # Errors
     /// Convert rust error into `napi::Error`
     #[napi]
-    pub async fn complete_task(&self, rn: String) -> napi::Result<String> {
-        let task_result = self.pg_manager.complete_task(rn).await;
+    pub async fn complete_task(&self, rn: String, metrics: Option<String>) -> napi::Result<String> {
+        let task_result = self.pg_manager.complete_task(rn, metrics).await;
         map_lib_response!(task_result)
     }
     /// # Errors
