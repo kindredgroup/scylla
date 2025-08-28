@@ -54,6 +54,7 @@ export declare type Task = {
   owner: string
   errors: TaskError[]
   history: TaskHistory[]
+  metrics?: object
 };
 
 export declare type DbConfig = {
