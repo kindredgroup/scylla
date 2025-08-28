@@ -34,9 +34,6 @@ pub fn validate_status_operation(task: &Task, update_task_model: &UpdateTaskMode
 fn prepare_status_task(mut task: Task, update_task_model: &UpdateTaskModel) -> Task {
     task.status = update_task_model.status.clone().unwrap();
     task.updated = Utc::now();
-    if let Some(metrics) = &update_task_model.metrics {
-        task.metrics = Some(metrics.clone());
-    }
     if let Some(error) = update_task_model.error.clone() {
         if task.status == TaskStatus::Aborted {
             task.errors.push(error);

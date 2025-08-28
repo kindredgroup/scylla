@@ -64,7 +64,7 @@ export class ScyllaManager {
    * # Errors
    * Convert rust error into `napi::Error`
    */
-  completeTask(rn: string, metrics?: string | undefined | null): Promise<string>
+  completeTask(rn: string): Promise<string>
   /**
    * # Errors
    * Convert rust error into `napi::Error`

@@ -51,7 +51,6 @@ impl PgManager {
             operation: UpdateOperation::Lease,
             error: None,
             task_timeout_in_secs,
-            metrics: None,
         };
         self.update_task(&update_task_model).await
     }
@@ -66,7 +65,6 @@ impl PgManager {
             operation: UpdateOperation::HeartBeat,
             error: None,
             task_timeout_in_secs,
-            metrics: None,
         };
         self.update_task(&update_task_model).await
     }
@@ -81,13 +79,12 @@ impl PgManager {
             operation: UpdateOperation::Status,
             error: None,
             task_timeout_in_secs: None,
-            metrics: None,
         };
         self.update_task(&update_task_model).await
     }
     /// # Errors
     /// Returns `PgAdapterError`
-    pub async fn complete_task(&self, rn: String, metrics: Option<String>) -> Result<Task, PgAdapterError> {
+    pub async fn complete_task(&self, rn: String) -> Result<Task, PgAdapterError> {
         let update_task_model = UpdateTaskModel {
             rn,
             worker: None,
@@ -96,11 +93,6 @@ impl PgManager {
             operation: UpdateOperation::Status,
             error: None,
             task_timeout_in_secs: None,
-            metrics: if let Some(metrics_str) = metrics {
-                serde_json::from_str(&metrics_str).ok() // set to None if deserialization fails
-            } else {
-                None
-            },
         };
         self.update_task(&update_task_model).await
     }
@@ -115,7 +107,6 @@ impl PgManager {
             operation: UpdateOperation::Status,
             error: Some(error),
             task_timeout_in_secs: None,
-            metrics: None,
         };
         self.update_task(&update_task_model).await
     }
@@ -135,7 +126,6 @@ impl PgManager {
             operation: UpdateOperation::Yield,
             error: None,
             task_timeout_in_secs: None,
-            metrics: None,
         };
         self.update_task(&update_task_model).await
     }
@@ -150,7 +140,6 @@ impl PgManager {
             operation: UpdateOperation::Reset,
             error: None,
             task_timeout_in_secs: None,
-            metrics: None,
         };
         self.update_task(&update_task_model).await
     }

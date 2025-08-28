@@ -115,8 +115,8 @@ class Scylla {
     return JSON.parse(response);
   }
 
-  public async completeTask(rn: string, metrics?: string): Promise<Task> {
-    let response = await this.scyllaManager.completeTask(rn, metrics);
+  public async completeTask(rn: string): Promise<Task> {
+    let response = await this.scyllaManager.completeTask(rn);
     return JSON.parse(response);
   }
 
