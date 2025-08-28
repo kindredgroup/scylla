@@ -42,20 +42,15 @@ impl Default for GetTaskModel {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Default)]
 #[serde(rename_all = "camelCase")]
 pub enum UpdateOperation {
     Yield,
     HeartBeat,
+    #[default]
     Status,
     Lease,
     Reset,
-}
-
-impl Default for UpdateOperation {
-    fn default() -> Self {
-        UpdateOperation::Status
-    }
 }
 impl Display for UpdateOperation {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
