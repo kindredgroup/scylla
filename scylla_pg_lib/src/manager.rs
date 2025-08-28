@@ -52,7 +52,7 @@ impl PgManager {
             error: None,
             task_timeout_in_secs,
         };
-        self.update_task(&update_task_model).await
+        self.update_task(&update_task_model, None).await
     }
     /// # Errors
     /// Returns `PgAdapterError`
@@ -66,7 +66,7 @@ impl PgManager {
             error: None,
             task_timeout_in_secs,
         };
-        self.update_task(&update_task_model).await
+        self.update_task(&update_task_model, None).await
     }
     /// # Errors
     /// Returns `PgAdapterError`
@@ -80,11 +80,11 @@ impl PgManager {
             error: None,
             task_timeout_in_secs: None,
         };
-        self.update_task(&update_task_model).await
+        self.update_task(&update_task_model, None).await
     }
     /// # Errors
     /// Returns `PgAdapterError`
-    pub async fn complete_task(&self, rn: String) -> Result<Task, PgAdapterError> {
+    pub async fn complete_task(&self, rn: String, metrics: Option<String>) -> Result<Task, PgAdapterError> {
         let update_task_model = UpdateTaskModel {
             rn,
             worker: None,
@@ -94,7 +94,7 @@ impl PgManager {
             error: None,
             task_timeout_in_secs: None,
         };
-        self.update_task(&update_task_model).await
+        self.update_task(&update_task_model, metrics).await
     }
     /// # Errors
     /// Returns `PgAdapterError`
@@ -108,7 +108,7 @@ impl PgManager {
             error: Some(error),
             task_timeout_in_secs: None,
         };
-        self.update_task(&update_task_model).await
+        self.update_task(&update_task_model, None).await
     }
     /// # Errors
     /// Returns `PgAdapterError`
@@ -127,7 +127,7 @@ impl PgManager {
             error: None,
             task_timeout_in_secs: None,
         };
-        self.update_task(&update_task_model).await
+        self.update_task(&update_task_model, None).await
     }
     /// # Errors
     /// Returns `PgAdapterError`
@@ -141,13 +141,21 @@ impl PgManager {
             error: None,
             task_timeout_in_secs: None,
         };
-        self.update_task(&update_task_model).await
+        self.update_task(&update_task_model, None).await
     }
     /// # Errors
     /// Returns `PgAdapterError`
-    async fn update_task(&self, utm: &UpdateTaskModel) -> Result<Task, PgAdapterError> {
+    async fn update_task(&self, utm: &UpdateTaskModel, metrics: Option<String>) -> Result<Task, PgAdapterError> {
         let task_to_update = self.fetch_task(utm.rn.clone()).await?;
-        let task = ScyllaOperations::update_task_operation(utm, task_to_update)?;
+        let mut task = ScyllaOperations::update_task_operation(utm, task_to_update)?;
+
+        if let Some(metrics) = metrics {
+            if let Ok(metrics_value) = serde_json::from_str::<serde_json::Value>(&metrics) {
+                task.spec["metrics"] = metrics_value;
+            }
+            // If deserialization fails, we silently ignore the metrics
+        }
+
         self.pg_adapter.update(task).await
     }
 
