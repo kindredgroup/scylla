@@ -76,7 +76,7 @@ async fn get_completed_tasks() {
     };
     pgm.insert_task(atm).await.unwrap();
     pgm.lease_task("add_test_1".to_string(), "worker".to_string(), None).await.unwrap();
-    pgm.complete_task("add_test_1".to_string(), None).await.unwrap();
+    pgm.complete_task("add_test_1".to_string()).await.unwrap();
 
     let gtm = GetTaskModel {
         status: Some(TaskStatus::Completed),

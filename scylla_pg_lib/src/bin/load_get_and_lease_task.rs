@@ -43,7 +43,7 @@ pub async fn start_worker(worker_id: String) {
                             //     log::error!("error occurred while heartbeat tasks {e}");
                             // }
                             // tokio::time::sleep(Duration::from_millis(1000)).await;
-                            if let Err(e) = pgm.complete_task(t.rn.clone(), None).await {
+                            if let Err(e) = pgm.complete_task(t.rn.clone()).await {
                                 log::error!("error occurred while complete tasks {e}");
                             }
                         }

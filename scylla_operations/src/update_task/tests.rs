@@ -12,7 +12,10 @@ fn validate_status_failure_scenarios() {
         operation: UpdateOperation::Status,
         status: None,
         rn: "abc".to_string(),
-        ..UpdateTaskModel::default()
+        error: None,
+        worker: None,
+        progress: None,
+        task_timeout_in_secs: None,
     };
 
     assert_eq!(
@@ -29,7 +32,6 @@ fn validate_status_failure_scenarios() {
         worker: None,
         progress: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let utm_running_status = UpdateTaskModel {
         operation: UpdateOperation::Status,
@@ -39,7 +41,6 @@ fn validate_status_failure_scenarios() {
         worker: None,
         progress: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let utm_completed_status = UpdateTaskModel {
         operation: UpdateOperation::Status,
@@ -49,7 +50,6 @@ fn validate_status_failure_scenarios() {
         worker: None,
         progress: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let t_ready = Task {
         status: TaskStatus::Ready,
@@ -78,7 +78,6 @@ fn validate_status_failure_scenarios() {
         worker: None,
         progress: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let t_running = Task {
         status: TaskStatus::Running,
@@ -102,7 +101,6 @@ fn validate_status_failure_scenarios() {
         worker: None,
         progress: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let t_aborted = Task {
         status: TaskStatus::Aborted,
@@ -148,7 +146,6 @@ fn validate_status_failure_scenarios() {
         worker: None,
         progress: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let t_running = Task {
         status: TaskStatus::Running,
@@ -172,7 +169,6 @@ fn validate_state_success_scenarios() {
         worker: None,
         progress: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let t_ready = Task {
         status: TaskStatus::Ready,
@@ -191,7 +187,6 @@ fn validate_state_success_scenarios() {
         worker: None,
         progress: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let utm_completed_status = UpdateTaskModel {
         operation: UpdateOperation::Status,
@@ -201,7 +196,6 @@ fn validate_state_success_scenarios() {
         worker: None,
         progress: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let utm_aborted_status = UpdateTaskModel {
         operation: UpdateOperation::Status,
@@ -215,7 +209,6 @@ fn validate_state_success_scenarios() {
         worker: None,
         progress: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let t_running = Task {
         status: TaskStatus::Running,
@@ -245,7 +238,6 @@ fn prepare_status_task_cases() {
         worker: None,
         progress: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let task = Task {
         errors: vec![TaskError {
@@ -275,7 +267,6 @@ fn prepare_status_task_cases() {
         worker: None,
         progress: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let task = Task {
         errors: vec![TaskError {
@@ -289,52 +280,6 @@ fn prepare_status_task_cases() {
     assert_eq!(prepared_task.status, utm_cancelled.status.unwrap());
     // error added to list
     assert_eq!(prepared_task.errors.len(), 1);
-
-    /*********************************/
-    //  Test metrics functionality when incoming metrics is not None
-
-    let utm_with_metrics = UpdateTaskModel {
-        operation: UpdateOperation::Status,
-        status: Some(TaskStatus::Completed),
-        rn: "abc".to_string(),
-        error: None,
-        worker: None,
-        progress: None,
-        task_timeout_in_secs: None,
-        metrics: Some(serde_json::from_str("{\"execution_time\": 150, \"memory_usage\": \"256MB\"}").unwrap()),
-    };
-    let task_with_metrics = Task {
-        status: TaskStatus::Running,
-        metrics: Some(serde_json::from_str("{\"start_time\": \"2023-01-01T00:00:00Z\"}").unwrap()),
-        ..Task::default()
-    };
-    let prepared_task_with_metrics = prepare_status_task(task_with_metrics, &utm_with_metrics);
-    assert_eq!(prepared_task_with_metrics.status, utm_with_metrics.status.unwrap());
-    // metrics should be replaced by the new value
-    assert_eq!(prepared_task_with_metrics.metrics, utm_with_metrics.metrics);
-
-    /*********************************/
-    //  Test metrics functionality when incoming metrics is None (should preserve existing metrics)
-
-    let utm_without_metrics = UpdateTaskModel {
-        operation: UpdateOperation::Status,
-        status: Some(TaskStatus::Completed),
-        rn: "abc".to_string(),
-        error: None,
-        worker: None,
-        progress: None,
-        task_timeout_in_secs: None,
-        metrics: None,
-    };
-    let task_with_existing_metrics = Task {
-        status: TaskStatus::Running,
-        metrics: Some(serde_json::from_str("{\"start_time\": \"2023-01-01T00:00:00Z\"}").unwrap()),
-        ..Task::default()
-    };
-    let prepared_task_preserve_metrics = prepare_status_task(task_with_existing_metrics.clone(), &utm_without_metrics);
-    assert_eq!(prepared_task_preserve_metrics.status, utm_without_metrics.status.unwrap());
-    // existing metrics should be preserved when incoming metrics is None
-    assert_eq!(prepared_task_preserve_metrics.metrics, task_with_existing_metrics.metrics);
 }
 
 #[test]
@@ -448,7 +393,6 @@ fn validate_heart_beat_operation_cases() {
         rn: t_ready.rn.clone(),
         status: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let utm_wrong_worker = UpdateTaskModel {
         operation: HeartBeat,
@@ -458,7 +402,6 @@ fn validate_heart_beat_operation_cases() {
         rn: t_ready.rn.clone(),
         status: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     assert_eq!(
         validate_heart_beat_operation(&t_ready, &utm),
@@ -511,7 +454,6 @@ fn prepare_heart_beat_task_cases() {
         progress: None,
         worker: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let task_2 = Task::default();
     let utm_with_progress = UpdateTaskModel {
@@ -522,7 +464,6 @@ fn prepare_heart_beat_task_cases() {
         progress: Some(0.5),
         worker: None,
         task_timeout_in_secs: Some(10),
-        metrics: None,
     };
     let prepared_task = prepare_heart_beat_task(task_1, &utm_without_progress);
     // just updated
@@ -569,7 +510,6 @@ fn validate_lease_operation_cases() {
         progress: None,
         worker: Some("worker".to_string()),
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let utm_without_worker = UpdateTaskModel {
         operation: UpdateOperation::Lease,
@@ -579,7 +519,6 @@ fn validate_lease_operation_cases() {
         progress: None,
         worker: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     assert_eq!(
         validate_lease_operation(&t_running, &utm_without_worker),
@@ -631,7 +570,6 @@ fn prepare_lease_task_cases() {
         progress: None,
         worker: Some("worker".to_string()),
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let t = Task {
         status: TaskStatus::Ready,
@@ -812,7 +750,6 @@ fn request_handler_cases() {
         progress: None,
         status: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let updated_task = request_handler(t, &utm).unwrap();
     assert_eq!(updated_task.status, TaskStatus::Running);
@@ -833,7 +770,6 @@ fn request_handler_cases() {
         progress: None,
         status: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let updated_task = request_handler(t, &utm).unwrap();
     assert_eq!(updated_task.status, TaskStatus::Ready);
@@ -855,7 +791,6 @@ fn request_handler_cases() {
         progress: None,
         status: None,
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let updated_task = request_handler(t, &utm).unwrap();
     assert_eq!(updated_task.status, TaskStatus::Running);
@@ -877,7 +812,6 @@ fn request_handler_cases() {
         progress: Some(0.7),
         status: None,
         task_timeout_in_secs: Some(5),
-        metrics: None,
     };
     let updated_task = request_handler(t, &utm).unwrap();
     assert_eq!(updated_task.status, TaskStatus::Running);
@@ -898,7 +832,6 @@ fn request_handler_cases() {
         progress: None,
         status: Some(TaskStatus::Cancelled),
         task_timeout_in_secs: None,
-        metrics: None,
     };
     let updated_task = request_handler(t, &utm).unwrap();
     assert_eq!(updated_task.status, TaskStatus::Cancelled);
