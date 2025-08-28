@@ -31,9 +31,7 @@ fn update_task_calls_get_and_update() {
         operation: UpdateOperation::Lease,
         status: Some(TaskStatus::Running),
         worker: Some("worker1".to_string()),
-        error: None,
-        progress: None,
-        task_timeout_in_secs: None,
+        ..UpdateTaskModel::default()
     };
     let task_to_update = Task {
         rn: "unique_id".to_string(),
@@ -58,10 +56,7 @@ fn update_task_returns_scylla_op_error() {
         rn: "unique_id".to_string(),
         operation: UpdateOperation::Status,
         status: Some(TaskStatus::Completed),
-        worker: None,
-        error: None,
-        progress: None,
-        task_timeout_in_secs: None,
+        ..UpdateTaskModel::default()
     };
 
     assert_eq!(
