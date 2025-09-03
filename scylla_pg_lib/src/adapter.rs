@@ -136,17 +136,15 @@ impl DbExecute for PgAdapter {
         let mut client: Client = self.pool.get().await?;
         let stmt = client.prepare_cached(sql).await?;
         let tx = client.build_transaction().isolation_level(isolation_level).start().await?;
-        
+
         match tx.execute(&stmt, params).await {
-            Ok(rows) => {
-                match tx.commit().await {
-                    Ok(_) => Ok(rows),
-                    Err(commit_err) => {
-                        log::error!("commit for tx failed: {}", commit_err);
-                        Err(PgAdapterError::DbError(commit_err))
-                    }
+            Ok(rows) => match tx.commit().await {
+                Ok(_) => Ok(rows),
+                Err(commit_err) => {
+                    log::error!("commit for tx failed: {}", commit_err);
+                    Err(PgAdapterError::DbError(commit_err))
                 }
-            }
+            },
             Err(e) => {
                 if let Err(rollback_err) = tx.rollback().await {
                     log::error!("rollback for tx failed: {}", rollback_err);

@@ -56,7 +56,7 @@ async fn reset_batch_tasks() {
     assert_eq!(reset_tasks[0].history.iter().position(|t| t.typ == TaskHistoryType::Assignment), Some(0));
     assert_eq!(reset_tasks[1].history.iter().position(|t| t.typ == TaskHistoryType::Timeout), Some(1));
     assert_eq!(reset_tasks[1].history.iter().position(|t| t.typ == TaskHistoryType::Assignment), Some(0));
-    
+
     // truncate table after use
     common::truncate_table().await;
 }
