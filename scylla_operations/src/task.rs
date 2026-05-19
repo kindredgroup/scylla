@@ -16,6 +16,11 @@ impl ScyllaOperations {
             ..Task::default()
         }
     }
+
+    pub fn add_task_operations(add_task_models: &Vec<AddTaskModel>) -> Vec<Task> {
+        add_task_models.iter().map(|atm| ScyllaOperations::add_task_operation(atm)).collect()
+    }
+
     /// # Errors
     /// Returns `ScyllaOperationsError`
     pub fn update_task_operation(update_task_model: &UpdateTaskModel, task_to_update: Task) -> Result<Task, ScyllaOperationsError> {
@@ -30,6 +35,7 @@ where
     type PersistenceError;
 
     async fn insert(&self, task: Task) -> Result<Task, Self::PersistenceError>;
+    async fn insert_many(&self, tasks: Vec<Task>) -> Result<Vec<Task>, Self::PersistenceError>;
     async fn update(&self, task: Task) -> Result<Task, Self::PersistenceError>;
     async fn query(&self, get_task_model: &GetTaskModel) -> Result<Vec<Task>, Self::PersistenceError>;
     async fn query_by_rn(&self, rn: String) -> Result<Task, Self::PersistenceError>;
