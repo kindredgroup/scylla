@@ -152,6 +152,14 @@ impl Default for Task {
         }
     }
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct TaskBatch {
+    pub inserted_tasks: Vec<Task>,
+    pub conflicting_tasks: Vec<Task>,
+}
+
 // $coverage:ignore-start
 #[cfg(test)]
 mod tests {
@@ -298,5 +306,41 @@ mod tests {
                 metrics: None,
             }
         )
+    }
+
+    #[test]
+    fn task_batch() {
+        let t_now = Utc::now();
+
+        let t1 = Task {
+            rn: "123".to_string(),
+            created: t_now,
+            updated: t_now,
+            ..Task::default()
+        };
+        let t2 = Task {
+            rn: "456".to_string(),
+            created: t_now,
+            updated: t_now,
+            ..Task::default()
+        };
+        let t3 = Task {
+            rn: "789".to_string(),
+            created: t_now,
+            updated: t_now,
+            ..Task::default()
+        };
+
+        let tb = TaskBatch {
+            inserted_tasks: vec![t1, t3],
+            conflicting_tasks: vec![t2],
+        };
+
+        // debug trait
+        assert_eq!(format!("{:?}", tb), format!("TaskBatch {{ inserted_tasks: [Task {{ rn: \"123\", spec: Null, status: Ready, queue: \"\", progress: 0.0, priority: 0, created: {0:?}, updated: {0:?}, deadline: None, owner: None, errors: [], history: [], metrics: None }}, Task {{ rn: \"789\", spec: Null, status: Ready, queue: \"\", progress: 0.0, priority: 0, created: {0:?}, updated: {0:?}, deadline: None, owner: None, errors: [], history: [], metrics: None }}], conflicting_tasks: [Task {{ rn: \"456\", spec: Null, status: Ready, queue: \"\", progress: 0.0, priority: 0, created: {0:?}, updated: {0:?}, deadline: None, owner: None, errors: [], history: [], metrics: None }}] }}", t_now));
+        // serialize trait
+        assert_eq!(serde_json::to_string(&tb).unwrap(), format!("{{\"insertedTasks\":[{{\"rn\":\"123\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}},{{\"rn\":\"789\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}}],\"conflictingTasks\":[{{\"rn\":\"456\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}}]}}", t_now));
+        // deserialize trait
+        assert_eq!(serde_json::from_str::<TaskBatch>(format!("{{\"insertedTasks\":[{{\"rn\":\"123\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}},{{\"rn\":\"789\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}}],\"conflictingTasks\":[{{\"rn\":\"456\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}}]}}", t_now).as_str()).unwrap(), tb);
     }
 }
