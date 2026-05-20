@@ -40,6 +40,14 @@ pub fn handle_insert_many_return<'a>(tasks: &'a [Task], original_tasks: &Vec<Tas
         },
     }
 }
+pub fn build_insert_many_tasks_sql(task_count: usize) -> String {
+    let values = (1..=task_count).map(|i| format!("(${i})")).collect::<Vec<String>>().join(", ");
+    format!(
+        "INSERT INTO task(data) VALUES {values}
+ON CONFLICT ((data->>'rn')) DO NOTHING
+RETURNING data::JSONB"
+    )
+}
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct UpdateParams {
@@ -204,6 +212,22 @@ mod tests {
                 inserted_tasks: tasks.clone(),
                 conflicting_tasks: Vec::new(),
             }
+        );
+    }
+
+    #[test]
+    fn build_insert_many_tasks_sql_cases() {
+        assert_eq!(
+            build_insert_many_tasks_sql(1),
+            "INSERT INTO task(data) VALUES ($1)\nON CONFLICT ((data->>'rn')) DO NOTHING\nRETURNING data::JSONB"
+        );
+        assert_eq!(
+            build_insert_many_tasks_sql(2),
+            "INSERT INTO task(data) VALUES ($1), ($2)\nON CONFLICT ((data->>'rn')) DO NOTHING\nRETURNING data::JSONB"
+        );
+        assert_eq!(
+            build_insert_many_tasks_sql(3),
+            "INSERT INTO task(data) VALUES ($1), ($2), ($3)\nON CONFLICT ((data->>'rn')) DO NOTHING\nRETURNING data::JSONB"
         );
     }
 
