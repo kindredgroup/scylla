@@ -2,7 +2,7 @@
 use crate::error::ScyllaOperationsError;
 use crate::update_task::request_handler;
 use async_trait::async_trait;
-use scylla_models::{AddTaskModel, GetTaskModel, Task, UpdateTaskModel};
+use scylla_models::{AddTaskModel, GetTaskModel, Task, TaskBatch, UpdateTaskModel};
 
 pub struct ScyllaOperations {}
 
@@ -18,7 +18,7 @@ impl ScyllaOperations {
     }
 
     pub fn add_task_operations(add_task_models: &Vec<AddTaskModel>) -> Vec<Task> {
-        add_task_models.iter().map(|atm| ScyllaOperations::add_task_operation(atm)).collect()
+        add_task_models.iter().map(ScyllaOperations::add_task_operation).collect()
     }
 
     /// # Errors
@@ -35,7 +35,7 @@ where
     type PersistenceError;
 
     async fn insert(&self, task: Task) -> Result<Task, Self::PersistenceError>;
-    async fn insert_many(&self, tasks: Vec<Task>) -> Result<Vec<Task>, Self::PersistenceError>;
+    async fn insert_many(&self, tasks: Vec<Task>) -> Result<TaskBatch, Self::PersistenceError>;
     async fn update(&self, task: Task) -> Result<Task, Self::PersistenceError>;
     async fn query(&self, get_task_model: &GetTaskModel) -> Result<Vec<Task>, Self::PersistenceError>;
     async fn query_by_rn(&self, rn: String) -> Result<Task, Self::PersistenceError>;

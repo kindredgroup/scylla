@@ -2,7 +2,7 @@
 use crate::adapter::PgAdapter;
 use crate::error::PgAdapterError;
 use log::debug;
-use scylla_models::{AddTaskModel, GetTaskModel, Task, TaskError, TaskStatus, UpdateOperation, UpdateTaskModel};
+use scylla_models::{AddTaskModel, GetTaskModel, Task, TaskBatch, TaskError, TaskStatus, UpdateOperation, UpdateTaskModel};
 use scylla_operations::task::{Persistence, ScyllaOperations};
 use scylla_pg_core::config::PGConfig;
 use scylla_pg_core::connection::get_pool;
@@ -33,6 +33,11 @@ impl PgManager {
     pub async fn insert_task(&self, atm: AddTaskModel) -> Result<Task, PgAdapterError> {
         let task = ScyllaOperations::add_task_operation(&atm);
         self.pg_adapter.insert(task).await
+    }
+    /// # Errors
+    /// Returns `PgAdapterError`
+    pub async fn insert_tasks(&self, atms: Vec<AddTaskModel>) -> Result<TaskBatch, PgAdapterError> {
+        self.pg_adapter.insert_many(ScyllaOperations::add_task_operations(&atms)).await
     }
     /// # Errors
     /// Returns `PgAdapterError`

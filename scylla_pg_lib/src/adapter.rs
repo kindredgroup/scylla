@@ -3,14 +3,15 @@
 //! Adapter to implement database operations.
 
 use crate::adapter_utils::{
-    handle_insert_return, handle_query_by_rn_return, handle_update_return, prepare_insert_task, prepare_query_task, prepare_update_task,
+    handle_insert_many_return, handle_insert_return, handle_query_by_rn_return, handle_update_return, prepare_insert_many_tasks, prepare_insert_task,
+    prepare_query_task, prepare_update_task,
 };
 use crate::error::PgAdapterError;
 use async_trait::async_trait;
 use chrono::{Duration, Utc};
 use deadpool_postgres::{Client, Pool};
 use log::debug;
-use scylla_models::{GetTaskModel, Task, TaskHistory, TaskHistoryType};
+use scylla_models::{GetTaskModel, Task, TaskBatch, TaskHistory, TaskHistoryType};
 use scylla_operations::task::Persistence;
 use serde_json::{from_value, json};
 use tokio_postgres::error::SqlState;
@@ -165,6 +166,20 @@ impl Persistence for PgAdapter {
             .await?;
         let t = handle_insert_return(execute_resp, &task)?;
         Ok(t.clone())
+    }
+
+    async fn insert_many(&self, tasks: Vec<Task>) -> Result<TaskBatch, PgAdapterError> {
+        let values = (1..=tasks.len()).map(|i| format!("(${i})")).collect::<Vec<String>>().join(", ");
+        let query_str = format!(
+            "INSERT INTO task(data) VALUES {values}
+            ON CONFLICT ((data->>'rn')) DO NOTHING
+            RETURNING data::JSONB"
+        );
+
+        let execute_resp = &self
+            .execute(&query_str, &[&prepare_insert_many_tasks(&tasks)], IsolationLevel::RepeatableRead)
+            .await?;
+        Ok(handle_insert_many_return(&execute_resp, &tasks))
     }
 
     async fn update(&self, task: Task) -> Result<Task, PgAdapterError> {
