@@ -116,3 +116,60 @@ test("add, lease N Tasks with timeout, complete and abort", async (t) => {
     t.is(abortedTask.status, "aborted");
 })
 
+test("add tasks", async (t) => {
+    let sc = get_singleton_manager();
+    let taskToAdd1 = {
+        rn: uuid(),
+        spec: JSON.stringify({job: "1", output: "a"}),
+        queue: "single",
+        priority: 0.1
+    };
+    let taskToAdd2 = {
+        rn: uuid(),
+        spec: JSON.stringify({job: "2", output: "b"}),
+        queue: "single",
+        priority: 0.2
+    };
+    let taskToAdd3 = {
+        rn: uuid(),
+        spec: JSON.stringify({job: "3", output: "c"}),
+        queue: "single",
+        priority: 0.2
+    };
+    let taskToAdd4 = {
+        rn: uuid(),
+        spec: JSON.stringify({job: "4", output: "d"}),
+        queue: "single",
+        priority: 0.2
+    };
+
+    const verifyTaskBatch = async (tasks, expectedInsertedTasks, expectedConflictingTasks) => {
+        taskBatch = JSON.parse(await sc.addTasks(tasks));
+        t.is(taskBatch.insertedTasks.length, expectedInsertedTasks.length);
+        t.deepEqual(
+            taskBatch.insertedTasks.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
+            expectedInsertedTasks.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
+        );
+        t.is(taskBatch.conflictingTasks.length, expectedConflictingTasks.length);
+        t.deepEqual(
+            taskBatch.conflictingTasks.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
+            expectedConflictingTasks.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
+        );
+    }
+
+    await verifyTaskBatch(
+        [taskToAdd1, taskToAdd2, taskToAdd3],
+        [taskToAdd1, taskToAdd2, taskToAdd3],
+        [],
+    );
+    await verifyTaskBatch(
+        [taskToAdd1, taskToAdd2, taskToAdd3, taskToAdd4],
+        [taskToAdd4],
+        [taskToAdd1, taskToAdd2, taskToAdd3],
+    );
+    await verifyTaskBatch(
+        [taskToAdd1, taskToAdd2, taskToAdd3, taskToAdd4],
+        [],
+        [taskToAdd1, taskToAdd2, taskToAdd3, taskToAdd4],
+    );
+})

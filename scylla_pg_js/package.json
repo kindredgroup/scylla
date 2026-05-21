@@ -1,6 +1,6 @@
 {
   "name": "scylla_pg_js",
-  "version": "0.1.35",
+  "version": "0.1.36",
   "main": "index.js",
   "types": "index.d.ts",
   "napi": {
