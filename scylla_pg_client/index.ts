@@ -57,6 +57,11 @@ export declare type Task = {
   metrics?: object
 };
 
+export declare type TaskBatch = {
+  insertedTasks: Task[]
+  conflictingTasks: Task[]
+}
+
 export declare type DbConfig = {
   pgHost: string
   pgPort: number
@@ -93,6 +98,24 @@ class Scylla {
       spec: JSON.stringify(addTaskModel.spec),
     }
     let response = await this.scyllaManager.addTask(atm);
+    return JSON.parse(response);
+  }
+  public async addTasks(addTaskModels: AddTaskModel[]): Promise<TaskBatch> {
+    if (!addTaskModels || addTaskModels.length === 0) {
+      throw Error ( "Invalid argument. addTaskModels cannot be empty" );
+    }
+
+    let atms: JsAddTaskModel[] = addTaskModels.map((atm, idx) => {
+      if (!atm || !atm.spec) {
+        throw Error ( `Invalid argument. addTaskModels[${idx}].spec cannot be undefined` );
+      }
+      return {
+        ...atm,
+        spec: JSON.stringify(atm.spec),
+      }
+    })
+
+    let response = await this.scyllaManager.addTasks(atms);
     return JSON.parse(response);
   }
 

@@ -1,7 +1,7 @@
 import test from 'ava';
 
 import {v4 as uuid} from 'uuid';
-import Scylla, {AddTaskModel, Task, TaskStatus} from "../index.js";
+import Scylla, {AddTaskModel, Task, TaskBatch, TaskStatus} from "../index.js";
 
 let root_sc: Scylla | null = null;
 async function get_singleton_manager() {
@@ -129,4 +129,104 @@ test("add, lease N Tasks with timeout, complete and abort", async (t) => {
 
 })
 
+test("add tasks - throws correct errors", async (t) => {
+  let sc = await get_singleton_manager();
 
+  const verifyError = async (taskModels: AddTaskModel[] | undefined | null, errorMessage: string) => {
+    try {
+      await sc.addTasks(taskModels as any);
+      t.fail('Expected error to be thrown');
+    } catch (e: any) {
+      t.is(e.message, errorMessage);
+    }
+  }
+
+  for (const taskModel of [[], null, undefined]) {
+    await verifyError(taskModel, "Invalid argument. addTaskModels cannot be empty");
+  }
+
+  await verifyError(
+    [{rn: uuid(), spec: undefined as any, queue: "single", priority: 0.1}],
+    "Invalid argument. addTaskModels[0].spec cannot be undefined",
+  );
+
+  for (const spec of [null, undefined]) {
+    await verifyError(
+      [
+        {
+          rn: uuid(),
+          spec: {job: "1", output: "a"},
+          queue: "single",
+          priority: 0.1
+        },
+        {
+          rn: uuid(),
+          spec: spec as any,
+          queue: "single",
+          priority: 0.2
+        }
+      ],
+      "Invalid argument. addTaskModels[1].spec cannot be undefined",
+    );
+  }
+})
+
+test("add tasks - returns correct task batches on repeated calls", async (t) => {
+  let sc = await get_singleton_manager();
+
+  let taskToAdd1: AddTaskModel = {
+    rn: uuid(),
+    spec: {job: "1", output: "a"},
+    queue: "single",
+    priority: 0.1
+  };
+
+  let taskToAdd2: AddTaskModel = {
+    rn: uuid(),
+    spec: {job: "2", output: "b"},
+    queue: "single",
+    priority: 0.2
+  };
+  let taskToAdd3: AddTaskModel = {
+    rn: uuid(),
+    spec: {job: "3", output: "c"},
+    queue: "single",
+    priority: 0.3
+  };
+  let taskToAdd4: AddTaskModel = {
+    rn: uuid(),
+    spec: {job: "4", output: "d"},
+    queue: "single",
+    priority: 0.1
+  };
+
+  const verifyTaskBatch = async (taskModels: AddTaskModel[], expectedInsertedTaskRns: string[], expectedConflictingTaskRns: string[]) => {
+    let taskBatch: TaskBatch = await sc.addTasks(taskModels);
+    t.is(taskBatch.insertedTasks.length, expectedInsertedTaskRns.length);
+    t.deepEqual(
+        taskBatch.insertedTasks.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
+        expectedInsertedTaskRns.sort((a, b) => a.localeCompare(b)),
+    );
+    t.is(taskBatch.conflictingTasks.length, expectedConflictingTaskRns.length);
+    t.deepEqual(
+        taskBatch.conflictingTasks.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
+        expectedConflictingTaskRns.sort((a, b) => a.localeCompare(b)),
+    );
+  }
+
+  await verifyTaskBatch(
+    [taskToAdd1, taskToAdd2, taskToAdd3],
+    [taskToAdd1.rn, taskToAdd2.rn, taskToAdd3.rn],
+    [],
+  );
+  await verifyTaskBatch(
+      [taskToAdd1, taskToAdd2, taskToAdd3, taskToAdd4],
+      [taskToAdd4.rn],
+      [taskToAdd1.rn, taskToAdd2.rn, taskToAdd3.rn],
+  );
+  await verifyTaskBatch(
+      [taskToAdd1, taskToAdd2, taskToAdd3, taskToAdd4],
+      [],
+      [taskToAdd1.rn, taskToAdd2.rn, taskToAdd3.rn, taskToAdd4.rn],
+  );
+})
