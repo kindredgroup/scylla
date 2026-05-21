@@ -3,8 +3,8 @@
 //! Adapter to implement database operations.
 
 use crate::adapter_utils::{
-    build_insert_many_tasks_sql, handle_insert_many_return, handle_insert_return, handle_query_by_rn_return, handle_update_return, prepare_insert_many_tasks,
-    prepare_insert_task, prepare_query_task, prepare_update_task,
+    handle_insert_many_return, handle_insert_return, handle_query_by_rn_return, handle_update_return, prepare_insert_many_tasks, prepare_insert_task,
+    prepare_query_task, prepare_update_task,
 };
 use crate::error::PgAdapterError;
 use async_trait::async_trait;
@@ -25,6 +25,12 @@ const INSERT_TASK_SQL: &str = "
     DO NOTHING
     RETURNING data::JSONB
   ";
+const INSERT_MANY_TASKS_SQL: &str = "
+    INSERT INTO task (data) \
+    SELECT unnest($1::jsonb[]) \
+    ON CONFLICT ((data->>'rn')) DO NOTHING \
+    RETURNING data::JSONB;
+";
 const UPDATE_TASK_SQL: &str = "
     UPDATE task SET data = data || $1 where data ->> 'rn' = $2 returning data
   ";
@@ -169,9 +175,8 @@ impl Persistence for PgAdapter {
     }
 
     async fn insert_many(&self, tasks: Vec<Task>) -> Result<TaskBatch, PgAdapterError> {
-        let query_str = build_insert_many_tasks_sql(tasks.len());
         let execute_resp = &self
-            .execute(&query_str, &[&prepare_insert_many_tasks(&tasks)], IsolationLevel::RepeatableRead)
+            .execute(INSERT_MANY_TASKS_SQL, &[&prepare_insert_many_tasks(&tasks)], IsolationLevel::RepeatableRead)
             .await?;
         Ok(handle_insert_many_return(&execute_resp, &tasks))
     }
