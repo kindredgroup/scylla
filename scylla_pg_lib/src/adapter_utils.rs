@@ -23,10 +23,10 @@ pub fn handle_insert_return<'a>(tasks: &'a [Task], original_task: &Task) -> Resu
 
 /// # Panics
 /// In case a task cannot be converted to `serde_json::Value`
-pub fn prepare_insert_many_tasks(tasks: &Vec<Task>) -> Vec<serde_json::Value> {
+pub fn prepare_batch_insert_tasks(tasks: &Vec<Task>) -> Vec<serde_json::Value> {
     tasks.iter().map(prepare_insert_task).collect()
 }
-pub fn handle_insert_many_return<'a>(tasks: &'a [Task], original_tasks: &Vec<Task>) -> TaskBatch {
+pub fn handle_batch_insert_tasks_return<'a>(tasks: &'a [Task], original_tasks: &Vec<Task>) -> TaskBatch {
     TaskBatch {
         inserted_tasks: tasks.to_vec(),
         conflicting_tasks: if tasks.len() == original_tasks.len() {
@@ -105,7 +105,7 @@ mod tests {
     }
 
     #[test]
-    fn prepare_insert_many_tasks_cases() {
+    fn prepare_batch_insert_tasks_cases() {
         let t1 = Task {
             rn: "123".to_string(),
             ..Task::default()
@@ -116,7 +116,7 @@ mod tests {
         };
         let ts: Vec<Task> = vec![t1.clone(), t2.clone()];
         assert_eq!(
-            prepare_insert_many_tasks(&ts),
+            prepare_batch_insert_tasks(&ts),
             vec![serde_json::to_value(&t1).unwrap(), serde_json::to_value(&t2).unwrap()]
         );
     }
@@ -163,7 +163,7 @@ mod tests {
     }
 
     #[test]
-    fn handle_insert_many_return_cases() {
+    fn handle_batch_insert_tasks_return_cases() {
         let tasks: Vec<Task> = vec![
             Task {
                 rn: "123".to_string(),
@@ -181,7 +181,7 @@ mod tests {
 
         // All tasks are missing.
         assert_eq!(
-            handle_insert_many_return(&[], &tasks),
+            handle_batch_insert_tasks_return(&[], &tasks),
             TaskBatch {
                 inserted_tasks: Vec::new(),
                 conflicting_tasks: tasks.clone(),
@@ -190,7 +190,7 @@ mod tests {
 
         // Some tasks are missing.
         assert_eq!(
-            handle_insert_many_return(&[tasks[0].clone(), tasks[2].clone()], &tasks),
+            handle_batch_insert_tasks_return(&[tasks[0].clone(), tasks[2].clone()], &tasks),
             TaskBatch {
                 inserted_tasks: vec![tasks[0].clone(), tasks[2].clone()],
                 conflicting_tasks: vec![tasks[1].clone()],
@@ -199,7 +199,7 @@ mod tests {
 
         // All tasks are present.
         assert_eq!(
-            handle_insert_many_return(&tasks, &tasks),
+            handle_batch_insert_tasks_return(&tasks, &tasks),
             TaskBatch {
                 inserted_tasks: tasks.clone(),
                 conflicting_tasks: Vec::new(),

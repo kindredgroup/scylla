@@ -10,7 +10,7 @@ use scylla_models::*;
 
 struct MockPgAdapter {
     insert: fn(Task) -> Result<Task, PgAdapterError>,
-    insert_many: fn(Vec<Task>) -> Result<TaskBatch, PgAdapterError>,
+    batch_insert: fn(Vec<Task>) -> Result<TaskBatch, PgAdapterError>,
     update: fn(Task) -> Result<Task, PgAdapterError>,
     query: fn(&GetTaskModel) -> Result<Vec<Task>, PgAdapterError>,
     query_by_rn: fn(String) -> Result<Task, PgAdapterError>,
@@ -25,8 +25,8 @@ impl MockPgAdapter {
         self
     }
 
-    fn on_insert_many(mut self, f: fn(Vec<Task>) -> Result<TaskBatch, PgAdapterError>) -> Self {
-        self.insert_many = f;
+    fn on_batch_insert(mut self, f: fn(Vec<Task>) -> Result<TaskBatch, PgAdapterError>) -> Self {
+        self.batch_insert = f;
         self
     }
 
@@ -55,7 +55,7 @@ impl Default for MockPgAdapter {
     fn default() -> Self {
         Self {
             insert: |_| unimplemented!(),
-            insert_many: |_| unimplemented!(),
+            batch_insert: |_| unimplemented!(),
             update: |_| unimplemented!(),
             query: |_| unimplemented!(),
             query_by_rn: |_| unimplemented!(),
@@ -73,8 +73,8 @@ impl Persistence for MockPgAdapter {
         (self.insert)(task)
     }
 
-    async fn insert_many(&self, tasks: Vec<Task>) -> Result<TaskBatch, Self::PersistenceError> {
-        (self.insert_many)(tasks)
+    async fn batch_insert(&self, tasks: Vec<Task>) -> Result<TaskBatch, Self::PersistenceError> {
+        (self.batch_insert)(tasks)
     }
 
     async fn update(&self, task: Task) -> Result<Task, Self::PersistenceError> {
@@ -132,7 +132,7 @@ async fn pg_manager_mock_adapter() {
 
     let mock = MockPgAdapter::default()
         .on_insert(Ok)
-        .on_insert_many(|tasks| {
+        .on_batch_insert(|tasks| {
             Ok(TaskBatch {
                 inserted_tasks: tasks[1..].to_vec(),
                 conflicting_tasks: vec![tasks[0].clone()],
@@ -189,8 +189,8 @@ async fn pg_manager_mock_adapter() {
         "add".to_string()
     );
 
-    let insert_many_tasks_result = pgm
-        .insert_tasks(vec![
+    let batch_insert_tasks_result = pgm
+        .batch_insert_tasks(vec![
             AddTaskModel {
                 rn: task1.rn.clone(),
                 spec: task1.spec.clone(),
@@ -214,7 +214,7 @@ async fn pg_manager_mock_adapter() {
         .unwrap();
 
     assert_eq!(
-        insert_many_tasks_result
+        batch_insert_tasks_result
             .inserted_tasks
             .iter()
             .map(|t| Task {
@@ -227,7 +227,7 @@ async fn pg_manager_mock_adapter() {
     );
 
     assert_eq!(
-        insert_many_tasks_result
+        batch_insert_tasks_result
             .conflicting_tasks
             .iter()
             .map(|t| Task {

@@ -35,7 +35,7 @@ where
     type PersistenceError;
 
     async fn insert(&self, task: Task) -> Result<Task, Self::PersistenceError>;
-    async fn insert_many(&self, tasks: Vec<Task>) -> Result<TaskBatch, Self::PersistenceError>;
+    async fn batch_insert(&self, tasks: Vec<Task>) -> Result<TaskBatch, Self::PersistenceError>;
     async fn update(&self, task: Task) -> Result<Task, Self::PersistenceError>;
     async fn query(&self, get_task_model: &GetTaskModel) -> Result<Vec<Task>, Self::PersistenceError>;
     async fn query_by_rn(&self, rn: String) -> Result<Task, Self::PersistenceError>;

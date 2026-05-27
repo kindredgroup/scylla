@@ -36,8 +36,8 @@ impl PgManager {
     }
     /// # Errors
     /// Returns `PgAdapterError`
-    pub async fn insert_tasks(&self, atms: Vec<AddTaskModel>) -> Result<TaskBatch, PgAdapterError> {
-        self.pg_adapter.insert_many(ScyllaOperations::add_task_operations(&atms)).await
+    pub async fn batch_insert_tasks(&self, atms: Vec<AddTaskModel>) -> Result<TaskBatch, PgAdapterError> {
+        self.pg_adapter.batch_insert(ScyllaOperations::add_task_operations(&atms)).await
     }
     /// # Errors
     /// Returns `PgAdapterError`

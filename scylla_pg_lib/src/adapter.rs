@@ -3,7 +3,7 @@
 //! Adapter to implement database operations.
 
 use crate::adapter_utils::{
-    handle_insert_many_return, handle_insert_return, handle_query_by_rn_return, handle_update_return, prepare_insert_many_tasks, prepare_insert_task,
+    handle_batch_insert_tasks_return, handle_insert_return, handle_query_by_rn_return, handle_update_return, prepare_batch_insert_tasks, prepare_insert_task,
     prepare_query_task, prepare_update_task,
 };
 use crate::error::PgAdapterError;
@@ -25,7 +25,7 @@ const INSERT_TASK_SQL: &str = "
     DO NOTHING
     RETURNING data::JSONB
   ";
-const INSERT_MANY_TASKS_SQL: &str = "
+const INSERT_BATCH_TASKS_SQL: &str = "
     INSERT INTO task (data) \
     SELECT unnest($1::jsonb[]) \
     ON CONFLICT ((data->>'rn')) DO NOTHING \
@@ -174,11 +174,11 @@ impl Persistence for PgAdapter {
         Ok(t.clone())
     }
 
-    async fn insert_many(&self, tasks: Vec<Task>) -> Result<TaskBatch, PgAdapterError> {
+    async fn batch_insert(&self, tasks: Vec<Task>) -> Result<TaskBatch, PgAdapterError> {
         let execute_resp = &self
-            .execute(INSERT_MANY_TASKS_SQL, &[&prepare_insert_many_tasks(&tasks)], IsolationLevel::RepeatableRead)
+            .execute(INSERT_BATCH_TASKS_SQL, &[&prepare_batch_insert_tasks(&tasks)], IsolationLevel::RepeatableRead)
             .await?;
-        Ok(handle_insert_many_return(&execute_resp, &tasks))
+        Ok(handle_batch_insert_tasks_return(&execute_resp, &tasks))
     }
 
     async fn update(&self, task: Task) -> Result<Task, PgAdapterError> {
