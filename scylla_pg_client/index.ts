@@ -58,8 +58,8 @@ export declare type Task = {
 };
 
 export declare type TaskBatch = {
-  insertedTasks: Task[]
-  conflictingTasks: Task[]
+  inserted: Task[]
+  failedToInsert: Task[]
 }
 
 export declare type DbConfig = {

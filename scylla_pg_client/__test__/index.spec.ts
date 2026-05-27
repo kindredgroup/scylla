@@ -200,17 +200,17 @@ test("add tasks - returns correct task batches on repeated calls", async (t) => 
     priority: 0.1
   };
 
-  const verifyTaskBatch = async (taskModels: AddTaskModel[], expectedInsertedTaskRns: string[], expectedConflictingTaskRns: string[]) => {
+  const verifyTaskBatch = async (taskModels: AddTaskModel[], expectedInsertedTaskRns: string[], expectedFailedToInsertTaskRns: string[]) => {
     let taskBatch: TaskBatch = await sc.addTasks(taskModels);
-    t.is(taskBatch.insertedTasks.length, expectedInsertedTaskRns.length);
+    t.is(taskBatch.inserted.length, expectedInsertedTaskRns.length);
     t.deepEqual(
-        taskBatch.insertedTasks.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
+        taskBatch.inserted.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
         expectedInsertedTaskRns.sort((a, b) => a.localeCompare(b)),
     );
-    t.is(taskBatch.conflictingTasks.length, expectedConflictingTaskRns.length);
+    t.is(taskBatch.failedToInsert.length, expectedFailedToInsertTaskRns.length);
     t.deepEqual(
-        taskBatch.conflictingTasks.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
-        expectedConflictingTaskRns.sort((a, b) => a.localeCompare(b)),
+        taskBatch.failedToInsert.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
+        expectedFailedToInsertTaskRns.sort((a, b) => a.localeCompare(b)),
     );
   }
 

@@ -111,7 +111,7 @@ impl ScyllaManager {
             })
             .collect::<Result<Vec<AddTaskModel>, JSScyllaError>>()?;
 
-        let tasks_result = self.pg_manager.insert_tasks(atms).await;
+        let tasks_result = self.pg_manager.batch_insert_tasks(atms).await;
         map_lib_response!(tasks_result)
     }
     /// # Errors

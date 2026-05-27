@@ -28,8 +28,8 @@ pub fn prepare_batch_insert_tasks(tasks: &Vec<Task>) -> Vec<serde_json::Value> {
 }
 pub fn handle_batch_insert_tasks_return<'a>(tasks: &'a [Task], original_tasks: &Vec<Task>) -> TaskBatch {
     TaskBatch {
-        inserted_tasks: tasks.to_vec(),
-        conflicting_tasks: if tasks.len() == original_tasks.len() {
+        inserted: tasks.to_vec(),
+        failed_to_insert: if tasks.len() == original_tasks.len() {
             Vec::new()
         } else {
             let tasks_map: HashSet<String> = tasks.iter().map(|task| task.rn.clone()).collect();
@@ -183,8 +183,8 @@ mod tests {
         assert_eq!(
             handle_batch_insert_tasks_return(&[], &tasks),
             TaskBatch {
-                inserted_tasks: Vec::new(),
-                conflicting_tasks: tasks.clone(),
+                inserted: Vec::new(),
+                failed_to_insert: tasks.clone(),
             }
         );
 
@@ -192,8 +192,8 @@ mod tests {
         assert_eq!(
             handle_batch_insert_tasks_return(&[tasks[0].clone(), tasks[2].clone()], &tasks),
             TaskBatch {
-                inserted_tasks: vec![tasks[0].clone(), tasks[2].clone()],
-                conflicting_tasks: vec![tasks[1].clone()],
+                inserted: vec![tasks[0].clone(), tasks[2].clone()],
+                failed_to_insert: vec![tasks[1].clone()],
             }
         );
 
@@ -201,8 +201,8 @@ mod tests {
         assert_eq!(
             handle_batch_insert_tasks_return(&tasks, &tasks),
             TaskBatch {
-                inserted_tasks: tasks.clone(),
-                conflicting_tasks: Vec::new(),
+                inserted: tasks.clone(),
+                failed_to_insert: Vec::new(),
             }
         );
     }

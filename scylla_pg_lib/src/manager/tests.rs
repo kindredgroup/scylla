@@ -134,8 +134,8 @@ async fn pg_manager_mock_adapter() {
         .on_insert(Ok)
         .on_batch_insert(|tasks| {
             Ok(TaskBatch {
-                inserted_tasks: tasks[1..].to_vec(),
-                conflicting_tasks: vec![tasks[0].clone()],
+                inserted: tasks[1..].to_vec(),
+                failed_to_insert: vec![tasks[0].clone()],
             })
         })
         .on_query_by_rn(|_rn| {
@@ -215,7 +215,7 @@ async fn pg_manager_mock_adapter() {
 
     assert_eq!(
         batch_insert_tasks_result
-            .inserted_tasks
+            .inserted
             .iter()
             .map(|t| Task {
                 created: t_now,
@@ -228,7 +228,7 @@ async fn pg_manager_mock_adapter() {
 
     assert_eq!(
         batch_insert_tasks_result
-            .conflicting_tasks
+            .failed_to_insert
             .iter()
             .map(|t| Task {
                 created: t_now,

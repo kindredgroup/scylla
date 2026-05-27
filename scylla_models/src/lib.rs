@@ -156,8 +156,8 @@ impl Default for Task {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct TaskBatch {
-    pub inserted_tasks: Vec<Task>,
-    pub conflicting_tasks: Vec<Task>,
+    pub inserted: Vec<Task>,
+    pub failed_to_insert: Vec<Task>,
 }
 
 // $coverage:ignore-start
@@ -332,15 +332,15 @@ mod tests {
         };
 
         let tb = TaskBatch {
-            inserted_tasks: vec![t1, t3],
-            conflicting_tasks: vec![t2],
+            inserted: vec![t1, t3],
+            failed_to_insert: vec![t2],
         };
 
         // debug trait
-        assert_eq!(format!("{:?}", tb), format!("TaskBatch {{ inserted_tasks: [Task {{ rn: \"123\", spec: Null, status: Ready, queue: \"\", progress: 0.0, priority: 0, created: {0:?}, updated: {0:?}, deadline: None, owner: None, errors: [], history: [], metrics: None }}, Task {{ rn: \"789\", spec: Null, status: Ready, queue: \"\", progress: 0.0, priority: 0, created: {0:?}, updated: {0:?}, deadline: None, owner: None, errors: [], history: [], metrics: None }}], conflicting_tasks: [Task {{ rn: \"456\", spec: Null, status: Ready, queue: \"\", progress: 0.0, priority: 0, created: {0:?}, updated: {0:?}, deadline: None, owner: None, errors: [], history: [], metrics: None }}] }}", t_now));
+        assert_eq!(format!("{:?}", tb), format!("TaskBatch {{ inserted: [Task {{ rn: \"123\", spec: Null, status: Ready, queue: \"\", progress: 0.0, priority: 0, created: {0:?}, updated: {0:?}, deadline: None, owner: None, errors: [], history: [], metrics: None }}, Task {{ rn: \"789\", spec: Null, status: Ready, queue: \"\", progress: 0.0, priority: 0, created: {0:?}, updated: {0:?}, deadline: None, owner: None, errors: [], history: [], metrics: None }}], failed_to_insert: [Task {{ rn: \"456\", spec: Null, status: Ready, queue: \"\", progress: 0.0, priority: 0, created: {0:?}, updated: {0:?}, deadline: None, owner: None, errors: [], history: [], metrics: None }}] }}", t_now));
         // serialize trait
-        assert_eq!(serde_json::to_string(&tb).unwrap(), format!("{{\"insertedTasks\":[{{\"rn\":\"123\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}},{{\"rn\":\"789\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}}],\"conflictingTasks\":[{{\"rn\":\"456\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}}]}}", t_now));
+        assert_eq!(serde_json::to_string(&tb).unwrap(), format!("{{\"inserted\":[{{\"rn\":\"123\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}},{{\"rn\":\"789\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}}],\"failedToInsert\":[{{\"rn\":\"456\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}}]}}", t_now));
         // deserialize trait
-        assert_eq!(serde_json::from_str::<TaskBatch>(format!("{{\"insertedTasks\":[{{\"rn\":\"123\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}},{{\"rn\":\"789\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}}],\"conflictingTasks\":[{{\"rn\":\"456\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}}]}}", t_now).as_str()).unwrap(), tb);
+        assert_eq!(serde_json::from_str::<TaskBatch>(format!("{{\"inserted\":[{{\"rn\":\"123\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}},{{\"rn\":\"789\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}}],\"failedToInsert\":[{{\"rn\":\"456\",\"spec\":null,\"status\":\"ready\",\"queue\":\"\",\"progress\":0.0,\"priority\":0,\"created\":\"{0:?}\",\"updated\":\"{0:?}\",\"deadline\":null,\"owner\":null,\"errors\":[],\"history\":[],\"metrics\":null}}]}}", t_now).as_str()).unwrap(), tb);
     }
 }

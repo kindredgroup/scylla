@@ -143,17 +143,17 @@ test("add tasks", async (t) => {
         priority: 0.2
     };
 
-    const verifyTaskBatch = async (tasks, expectedInsertedTasks, expectedConflictingTasks) => {
+    const verifyTaskBatch = async (tasks, expectedInsertedTasks, expectedFailedToInsertTasks) => {
         taskBatch = JSON.parse(await sc.addTasks(tasks));
-        t.is(taskBatch.insertedTasks.length, expectedInsertedTasks.length);
+        t.is(taskBatch.inserted.length, expectedInsertedTasks.length);
         t.deepEqual(
-            taskBatch.insertedTasks.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
+            taskBatch.inserted.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
             expectedInsertedTasks.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
         );
-        t.is(taskBatch.conflictingTasks.length, expectedConflictingTasks.length);
+        t.is(taskBatch.failed_to_insert.length, expectedFailedToInsertTasks.length);
         t.deepEqual(
-            taskBatch.conflictingTasks.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
-            expectedConflictingTasks.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
+            taskBatch.failed_to_insert.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
+            expectedFailedToInsertTasks.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
         );
     }
 
