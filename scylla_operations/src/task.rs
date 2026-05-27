@@ -1,4 +1,6 @@
 //! Scylla Operations
+use std::collections::HashSet;
+
 use crate::error::ScyllaOperationsError;
 use crate::update_task::request_handler;
 use async_trait::async_trait;
@@ -18,7 +20,12 @@ impl ScyllaOperations {
     }
 
     pub fn add_task_operations(add_task_models: &Vec<AddTaskModel>) -> Vec<Task> {
-        add_task_models.iter().map(ScyllaOperations::add_task_operation).collect()
+        let mut seen = HashSet::new();
+        add_task_models
+            .iter()
+            .filter(|model| seen.insert(model.rn.clone()))
+            .map(ScyllaOperations::add_task_operation)
+            .collect()
     }
 
     /// # Errors

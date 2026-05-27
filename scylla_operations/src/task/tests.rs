@@ -65,6 +65,38 @@ fn add_task_operations() {
 }
 
 #[test]
+fn add_task_operations_dedupes_by_rn() {
+    let add_task_models = vec![
+        AddTaskModel {
+            rn: "123".to_string(),
+            priority: 1,
+            queue: "aa".to_string(),
+            spec: serde_json::Value::default(),
+        },
+        AddTaskModel {
+            rn: "123".to_string(),
+            priority: 9,
+            queue: "duplicate".to_string(),
+            spec: serde_json::json!({"dup": true}),
+        },
+        AddTaskModel {
+            rn: "456".to_string(),
+            priority: 2,
+            queue: "bb".to_string(),
+            spec: serde_json::Value::default(),
+        },
+    ];
+    let returned_tasks = ScyllaOperations::add_task_operations(&add_task_models);
+    assert_eq!(returned_tasks.len(), 2);
+    assert_eq!(returned_tasks[0].rn, "123");
+    assert_eq!(returned_tasks[0].priority, 1);
+    assert_eq!(returned_tasks[0].queue, "aa");
+    assert_eq!(returned_tasks[1].rn, "456");
+    assert_eq!(returned_tasks[1].priority, 2);
+    assert_eq!(returned_tasks[1].queue, "bb");
+}
+
+#[test]
 fn update_task_calls_get_and_update() {
     let utm = UpdateTaskModel {
         rn: "unique_id".to_string(),
