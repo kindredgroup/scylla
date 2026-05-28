@@ -60,7 +60,13 @@ export declare type Task = {
 export declare type TaskBatch = {
   inserted: Task[]
   failedToInsert: Task[]
-}
+};
+
+export declare type TaskBatchWithInvalidSpecs = {
+  inserted: Task[]
+  failedToInsert: Task[]
+  invalidSpecs: string[]
+};
 
 export declare type DbConfig = {
   pgHost: string
@@ -100,23 +106,34 @@ class Scylla {
     let response = await this.scyllaManager.addTask(atm);
     return JSON.parse(response);
   }
-  public async addTasks(addTaskModels: AddTaskModel[]): Promise<TaskBatch> {
+  public async addTasks(addTaskModels: AddTaskModel[]): Promise<TaskBatchWithInvalidSpecs> {
     if (!addTaskModels || addTaskModels.length === 0) {
-      throw Error ( "Invalid argument. addTaskModels cannot be empty" );
+      return { inserted: [], failedToInsert: [], invalidSpecs: [] };
     }
 
-    let atms: JsAddTaskModel[] = addTaskModels.map((atm, idx) => {
+    const invalidSpecs: string[] = [];
+
+    let atms: JsAddTaskModel[] = addTaskModels.reduce((atms, atm) => {
       if (!atm || !atm.spec) {
-        throw Error ( `Invalid argument. addTaskModels[${idx}].spec cannot be undefined` );
+        invalidSpecs.push(atm.rn);
+        return atms;
       }
-      return {
+
+      atms.push({
         ...atm,
         spec: JSON.stringify(atm.spec),
-      }
-    })
+      })
+
+      return atms;
+    }, [] as JsAddTaskModel[]);
 
     let response = await this.scyllaManager.addTasks(atms);
-    return JSON.parse(response);
+    let taskBatch: TaskBatch = JSON.parse(response);
+
+    return {
+      ...taskBatch,
+      invalidSpecs,
+    };
   }
 
   public async leaseTask(rn: string, worker: string, taskTimeOutInSecs?: number): Promise<Task> {

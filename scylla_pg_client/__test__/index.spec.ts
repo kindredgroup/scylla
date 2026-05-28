@@ -127,49 +127,138 @@ test("add, lease N Tasks with timeout, complete and abort", async (t) => {
 
   t.is(completedTask.status, TaskStatus.completed);
 
-})
+});
 
-test("add tasks - throws correct errors", async (t) => {
-  let sc = await get_singleton_manager();
-
-  const verifyError = async (taskModels: AddTaskModel[] | undefined | null, errorMessage: string) => {
-    try {
-      await sc.addTasks(taskModels as any);
-      t.fail('Expected error to be thrown');
-    } catch (e: any) {
-      t.is(e.message, errorMessage);
-    }
-  }
-
-  for (const taskModel of [[], null, undefined]) {
-    await verifyError(taskModel, "Invalid argument. addTaskModels cannot be empty");
-  }
-
-  await verifyError(
-    [{rn: uuid(), spec: undefined as any, queue: "single", priority: 0.1}],
-    "Invalid argument. addTaskModels[0].spec cannot be undefined",
-  );
-
-  for (const spec of [null, undefined]) {
-    await verifyError(
-      [
-        {
-          rn: uuid(),
-          spec: {job: "1", output: "a"},
-          queue: "single",
-          priority: 0.1
-        },
-        {
-          rn: uuid(),
-          spec: spec as any,
-          queue: "single",
-          priority: 0.2
-        }
+(() => {
+  const testCases = [
+    {
+      description: 'addTaskModels is null',
+      taskModels: null,
+      expectedInsertedTaskRns: [],
+      expectedFailedToInsertTaskRns: [],
+      expectedInvalidSpecs: [],
+    },
+    {
+      description: 'addTaskModels is undefined',
+      taskModels: undefined,
+      expectedInsertedTaskRns: [],
+      expectedFailedToInsertTaskRns: [],
+      expectedInvalidSpecs: [],
+    },
+    {
+      description: 'addTaskModels is empty array',
+      taskModels: [],
+      expectedInsertedTaskRns: [],
+      expectedFailedToInsertTaskRns: [],
+      expectedInvalidSpecs: [],
+    },
+    {
+      description: 'spec undefined',
+      taskModels: [
+        { rnIndex: 0, spec: undefined as any, queue: "single", priority: 0.1 }
       ],
-      "Invalid argument. addTaskModels[1].spec cannot be undefined",
-    );
+      expectedInsertedTaskRns: [],
+      expectedFailedToInsertTaskRns: [],
+      expectedInvalidSpecs: [0],
+    },
+    {
+      description: 'spec is null',
+      taskModels: [
+        {rnIndex: 0, spec: null as any, queue: "single", priority: 0.1 }
+      ],
+      expectedInsertedTaskRns: [],
+      expectedFailedToInsertTaskRns: [],
+      expectedInvalidSpecs: [0],
+    },
+    {
+      description: 'spec is empty object',
+      taskModels: [{ rnIndex: 0, spec: {}, queue: "single", priority: 0.1 }],
+      expectedInsertedTaskRns: [0],
+      expectedFailedToInsertTaskRns: [],
+      expectedInvalidSpecs: [],
+    },
+    {
+      description: 'first spec is valid and second spec is invalid',
+      taskModels: [
+        { rnIndex: 0, spec: { job: "1", output: "a" }, queue: "single", priority: 0.1 },
+        { rnIndex: 1, spec: null as any, queue: "single", priority: 0.1 },
+      ],
+      expectedInsertedTaskRns: [0],
+      expectedFailedToInsertTaskRns: [],
+      expectedInvalidSpecs: [1],
+    },
+    {
+      description: 'both specs are invalid',
+      taskModels: [
+        { rnIndex: 0, spec: undefined, queue: "single", priority: 0.1 },
+        { rnIndex: 1, spec: null, queue: "single", priority: 0.1 },
+      ],
+      expectedInsertedTaskRns: [],
+      expectedFailedToInsertTaskRns: [],
+      expectedInvalidSpecs: [0, 1],
+    },
+    {
+      description: 'both specs are valid',
+      taskModels: [
+        { rnIndex: 0, spec: { job: "1", output: "a" }, queue: "single", priority: 0.1 },
+        { rnIndex: 1, spec: { job: "2", output: "b" }, queue: "double", priority: 0.2 },
+      ],
+      expectedInsertedTaskRns: [0, 1],
+      expectedFailedToInsertTaskRns: [],
+      expectedInvalidSpecs: [],
+    },
+    {
+      description: 'duplicate specs',
+      taskModels: [
+        { rnIndex: 0, spec: { job: "1", output: "a" }, queue: "single", priority: 0.1 },
+        { rnIndex: 0, spec: { job: "1", output: "a" }, queue: "single", priority: 0.1 },
+      ],
+      expectedInsertedTaskRns: [0],
+      expectedFailedToInsertTaskRns: [],
+      expectedInvalidSpecs: [],
+    },
+  ] satisfies {
+    description: string;
+    taskModels: (Omit<AddTaskModel, 'rn'> & { rnIndex: number })[] | null | undefined;
+    expectedInsertedTaskRns: number[] | undefined;
+    expectedFailedToInsertTaskRns: number[] | undefined;
+    expectedInvalidSpecs: number[] | undefined;
+  }[];
+
+  for (const {
+    description,
+    taskModels,
+    expectedInsertedTaskRns = Array<number>(),
+    expectedFailedToInsertTaskRns = Array<number>(),
+    expectedInvalidSpecs = Array<number>(),
+  } of testCases) {
+    test(`add tasks - return correct task batch: ${description}`, async (t) => {
+      const uuids = {} as Record<number, string>;
+      const getUuidForIndex = (index: number) => {
+        if (!uuids[index]) {
+          uuids[index] = uuid();
+        }
+
+        return uuids[index];
+      };
+
+      let sc = await get_singleton_manager();
+      let taskBatch = await sc.addTasks(taskModels ? taskModels.map((t) => ({ ...t, rn: getUuidForIndex(t.rnIndex) })) : taskModels as any);
+      t.deepEqual(
+          taskBatch.inserted.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
+          expectedInsertedTaskRns.map((i) => getUuidForIndex(i)).sort((a, b) => a.localeCompare(b)),
+      );
+      t.deepEqual(
+          taskBatch.failedToInsert.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
+          expectedFailedToInsertTaskRns.map((i) => getUuidForIndex(i)).sort((a, b) => a.localeCompare(b)),
+      );
+      t.deepEqual(
+          taskBatch.invalidSpecs.sort((a, b) => a.localeCompare(b)),
+          expectedInvalidSpecs.map((i) => getUuidForIndex(i)).sort((a, b) => a.localeCompare(b)),
+      );
+    });
   }
-})
+})();
 
 test("add tasks - returns correct task batches on repeated calls", async (t) => {
   let sc = await get_singleton_manager();
@@ -229,4 +318,5 @@ test("add tasks - returns correct task batches on repeated calls", async (t) => 
       [],
       [taskToAdd1.rn, taskToAdd2.rn, taskToAdd3.rn, taskToAdd4.rn],
   );
+  await verifyTaskBatch([], [], []);
 })
