@@ -23,10 +23,10 @@ pub fn handle_insert_return<'a>(tasks: &'a [Task], original_task: &Task) -> Resu
 
 /// # Panics
 /// In case a task cannot be converted to `serde_json::Value`
-pub fn prepare_batch_insert_tasks(tasks: &Vec<Task>) -> Vec<serde_json::Value> {
+pub fn prepare_batch_insert_tasks(tasks: &[Task]) -> Vec<serde_json::Value> {
     tasks.iter().map(prepare_insert_task).collect()
 }
-pub fn handle_batch_insert_tasks_return<'a>(tasks: &'a [Task], original_tasks: &Vec<Task>) -> TaskBatch {
+pub fn handle_batch_insert_tasks_return(tasks: &[Task], original_tasks: &[Task]) -> TaskBatch {
     TaskBatch {
         inserted: tasks.to_vec(),
         failed_to_insert: if tasks.len() == original_tasks.len() {

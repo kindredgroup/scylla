@@ -178,7 +178,7 @@ impl Persistence for PgAdapter {
         let execute_resp = &self
             .execute(INSERT_BATCH_TASKS_SQL, &[&prepare_batch_insert_tasks(&tasks)], IsolationLevel::RepeatableRead)
             .await?;
-        Ok(handle_batch_insert_tasks_return(&execute_resp, &tasks))
+        Ok(handle_batch_insert_tasks_return(execute_resp, &tasks))
     }
 
     async fn update(&self, task: Task) -> Result<Task, PgAdapterError> {
