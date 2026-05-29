@@ -150,9 +150,9 @@ test("add tasks", async (t) => {
             taskBatch.inserted.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
             expectedInsertedTasks.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
         );
-        t.is(taskBatch.failed_to_insert.length, expectedFailedToInsertTasks.length);
+        t.is(taskBatch.failedToInsert.length, expectedFailedToInsertTasks.length);
         t.deepEqual(
-            taskBatch.failed_to_insert.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
+            taskBatch.failedToInsert.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
             expectedFailedToInsertTasks.map((t) => t.rn).sort((a, b) => a.localeCompare(b)),
         );
     }
@@ -171,5 +171,10 @@ test("add tasks", async (t) => {
         [taskToAdd1, taskToAdd2, taskToAdd3, taskToAdd4],
         [],
         [taskToAdd1, taskToAdd2, taskToAdd3, taskToAdd4],
+    );
+    await verifyTaskBatch(
+        [],
+        [],
+        [],
     );
 })
