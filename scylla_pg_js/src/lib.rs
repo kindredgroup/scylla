@@ -96,6 +96,27 @@ impl ScyllaManager {
     /// # Errors
     /// Convert rust error into `napi::Error`
     #[napi]
+    pub async fn add_tasks(&self, js_atms: Vec<JsAddTaskModel>) -> napi::Result<String> {
+        let atms = js_atms
+            .iter()
+            .map(|js_atm| {
+                let spec = validate_json(js_atm.spec.as_str(), "spec")?;
+                let atm = AddTaskModel {
+                    rn: js_atm.rn.clone(),
+                    priority: js_atm.priority,
+                    spec,
+                    queue: js_atm.queue.clone(),
+                };
+                Ok(atm)
+            })
+            .collect::<Result<Vec<AddTaskModel>, JSScyllaError>>()?;
+
+        let tasks_result = self.pg_manager.batch_insert_tasks(atms).await;
+        map_lib_response!(tasks_result)
+    }
+    /// # Errors
+    /// Convert rust error into `napi::Error`
+    #[napi]
     pub async fn lease_task(&self, rn: String, worker: String, task_timeout_in_secs: Option<i64>) -> napi::Result<String> {
         let task_result = self.pg_manager.lease_task(rn, worker, task_timeout_in_secs).await;
         map_lib_response!(task_result)

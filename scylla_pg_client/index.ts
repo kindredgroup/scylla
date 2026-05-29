@@ -57,6 +57,17 @@ export declare type Task = {
   metrics?: object
 };
 
+export declare type TaskBatch = {
+  inserted: Task[]
+  failedToInsert: Task[]
+};
+
+export declare type TaskBatchWithInvalidSpecs = {
+  inserted: Task[]
+  failedToInsert: Task[]
+  invalidSpecs: string[]
+};
+
 export declare type DbConfig = {
   pgHost: string
   pgPort: number
@@ -94,6 +105,35 @@ class Scylla {
     }
     let response = await this.scyllaManager.addTask(atm);
     return JSON.parse(response);
+  }
+  public async addTasks(addTaskModels: AddTaskModel[]): Promise<TaskBatchWithInvalidSpecs> {
+    if (!addTaskModels || addTaskModels.length === 0) {
+      return { inserted: [], failedToInsert: [], invalidSpecs: [] };
+    }
+
+    const invalidSpecs: string[] = [];
+
+    let atms: JsAddTaskModel[] = addTaskModels.reduce((atms, atm) => {
+      if (!atm || !atm.spec) {
+        invalidSpecs.push(atm.rn);
+        return atms;
+      }
+
+      atms.push({
+        ...atm,
+        spec: JSON.stringify(atm.spec),
+      })
+
+      return atms;
+    }, [] as JsAddTaskModel[]);
+
+    let response = await this.scyllaManager.addTasks(atms);
+    let taskBatch: TaskBatch = JSON.parse(response);
+
+    return {
+      ...taskBatch,
+      invalidSpecs,
+    };
   }
 
   public async leaseTask(rn: string, worker: string, taskTimeOutInSecs?: number): Promise<Task> {

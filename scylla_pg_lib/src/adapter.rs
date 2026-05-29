@@ -3,14 +3,15 @@
 //! Adapter to implement database operations.
 
 use crate::adapter_utils::{
-    handle_insert_return, handle_query_by_rn_return, handle_update_return, prepare_insert_task, prepare_query_task, prepare_update_task,
+    handle_batch_insert_tasks_return, handle_insert_return, handle_query_by_rn_return, handle_update_return, prepare_batch_insert_tasks, prepare_insert_task,
+    prepare_query_task, prepare_update_task,
 };
 use crate::error::PgAdapterError;
 use async_trait::async_trait;
 use chrono::{Duration, Utc};
 use deadpool_postgres::{Client, Pool};
 use log::debug;
-use scylla_models::{GetTaskModel, Task, TaskHistory, TaskHistoryType};
+use scylla_models::{GetTaskModel, Task, TaskBatch, TaskHistory, TaskHistoryType};
 use scylla_operations::task::Persistence;
 use serde_json::{from_value, json};
 use tokio_postgres::error::SqlState;
@@ -24,6 +25,12 @@ const INSERT_TASK_SQL: &str = "
     DO NOTHING
     RETURNING data::JSONB
   ";
+const INSERT_BATCH_TASKS_SQL: &str = "
+    INSERT INTO task (data) \
+    SELECT unnest($1::jsonb[]) \
+    ON CONFLICT ((data->>'rn')) DO NOTHING \
+    RETURNING data::JSONB;
+";
 const UPDATE_TASK_SQL: &str = "
     UPDATE task SET data = data || $1 where data ->> 'rn' = $2 returning data
   ";
@@ -165,6 +172,13 @@ impl Persistence for PgAdapter {
             .await?;
         let t = handle_insert_return(execute_resp, &task)?;
         Ok(t.clone())
+    }
+
+    async fn batch_insert(&self, tasks: Vec<Task>) -> Result<TaskBatch, PgAdapterError> {
+        let execute_resp = &self
+            .execute(INSERT_BATCH_TASKS_SQL, &[&prepare_batch_insert_tasks(&tasks)], IsolationLevel::RepeatableRead)
+            .await?;
+        Ok(handle_batch_insert_tasks_return(&execute_resp, &tasks))
     }
 
     async fn update(&self, task: Task) -> Result<Task, PgAdapterError> {

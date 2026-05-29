@@ -10,6 +10,7 @@ use scylla_models::*;
 
 struct MockPgAdapter {
     insert: fn(Task) -> Result<Task, PgAdapterError>,
+    batch_insert: fn(Vec<Task>) -> Result<TaskBatch, PgAdapterError>,
     update: fn(Task) -> Result<Task, PgAdapterError>,
     query: fn(&GetTaskModel) -> Result<Vec<Task>, PgAdapterError>,
     query_by_rn: fn(String) -> Result<Task, PgAdapterError>,
@@ -21,6 +22,11 @@ struct MockPgAdapter {
 impl MockPgAdapter {
     fn on_insert(mut self, f: fn(Task) -> Result<Task, PgAdapterError>) -> Self {
         self.insert = f;
+        self
+    }
+
+    fn on_batch_insert(mut self, f: fn(Vec<Task>) -> Result<TaskBatch, PgAdapterError>) -> Self {
+        self.batch_insert = f;
         self
     }
 
@@ -49,6 +55,7 @@ impl Default for MockPgAdapter {
     fn default() -> Self {
         Self {
             insert: |_| unimplemented!(),
+            batch_insert: |_| unimplemented!(),
             update: |_| unimplemented!(),
             query: |_| unimplemented!(),
             query_by_rn: |_| unimplemented!(),
@@ -64,6 +71,10 @@ impl Persistence for MockPgAdapter {
     type PersistenceError = PgAdapterError;
     async fn insert(&self, task: Task) -> Result<Task, Self::PersistenceError> {
         (self.insert)(task)
+    }
+
+    async fn batch_insert(&self, tasks: Vec<Task>) -> Result<TaskBatch, Self::PersistenceError> {
+        (self.batch_insert)(tasks)
     }
 
     async fn update(&self, task: Task) -> Result<Task, Self::PersistenceError> {
@@ -91,8 +102,42 @@ impl Persistence for MockPgAdapter {
 
 #[tokio::test]
 async fn pg_manager_mock_adapter() {
+    let t_now = Utc::now();
+    let task1 = Task {
+        rn: "1".to_string(),
+        priority: 1,
+        queue: "a".to_string(),
+        created: t_now,
+        updated: t_now,
+        ..Task::default()
+    };
+
+    let task2 = Task {
+        rn: "2".to_string(),
+        priority: 2,
+        queue: "b".to_string(),
+        created: t_now,
+        updated: t_now,
+        ..Task::default()
+    };
+
+    let task3 = Task {
+        rn: "3".to_string(),
+        priority: 3,
+        queue: "c".to_string(),
+        created: t_now,
+        updated: t_now,
+        ..Task::default()
+    };
+
     let mock = MockPgAdapter::default()
         .on_insert(Ok)
+        .on_batch_insert(|tasks| {
+            Ok(TaskBatch {
+                inserted: tasks[1..].to_vec(),
+                failed_to_insert: vec![tasks[0].clone()],
+            })
+        })
         .on_query_by_rn(|_rn| {
             Ok(Task {
                 rn: "query_by_rn".to_string(),
@@ -142,6 +187,56 @@ async fn pg_manager_mock_adapter() {
         .unwrap()
         .rn,
         "add".to_string()
+    );
+
+    let batch_insert_tasks_result = pgm
+        .batch_insert_tasks(vec![
+            AddTaskModel {
+                rn: task1.rn.clone(),
+                spec: task1.spec.clone(),
+                priority: task1.priority,
+                queue: task1.queue.clone(),
+            },
+            AddTaskModel {
+                rn: task2.rn.clone(),
+                spec: task2.spec.clone(),
+                priority: task2.priority,
+                queue: task2.queue.clone(),
+            },
+            AddTaskModel {
+                rn: task3.rn.clone(),
+                spec: task3.spec.clone(),
+                priority: task3.priority,
+                queue: task3.queue.clone(),
+            },
+        ])
+        .await
+        .unwrap();
+
+    assert_eq!(
+        batch_insert_tasks_result
+            .inserted
+            .iter()
+            .map(|t| Task {
+                created: t_now,
+                updated: t_now,
+                ..t.clone()
+            })
+            .collect::<Vec<Task>>(),
+        vec![task2.clone(), task3.clone(),]
+    );
+
+    assert_eq!(
+        batch_insert_tasks_result
+            .failed_to_insert
+            .iter()
+            .map(|t| Task {
+                created: t_now,
+                updated: t_now,
+                ..t.clone()
+            })
+            .collect::<Vec<Task>>(),
+        vec![task1.clone()]
     );
     // update cases
     assert_eq!(pgm.lease_task("2".to_string(), "w".to_string(), None).await.unwrap().rn, "update".to_string());
