@@ -139,7 +139,7 @@ mod tests {
             ..Task::default()
         };
         // In case single item is returned from db. That will be retruned back
-        assert_eq!(*handle_insert_return(&[ret_t.clone()], &original_task).unwrap(), ret_t);
+        assert_eq!(*handle_insert_return(std::slice::from_ref(&ret_t), &original_task).unwrap(), ret_t);
     }
 
     #[test]
@@ -237,7 +237,7 @@ mod tests {
             status: TaskStatus::Running,
             ..Task::default()
         };
-        assert_eq!(*handle_update_return(&[ret_t.clone()], &original_t).unwrap(), ret_t)
+        assert_eq!(*handle_update_return(std::slice::from_ref(&ret_t), &original_t).unwrap(), ret_t)
     }
 
     #[test]
@@ -310,7 +310,7 @@ mod tests {
             status: TaskStatus::Running,
             ..Task::default()
         };
-        assert_eq!(*handle_query_by_rn_return(&[ret_t.clone()], &original_t.rn).unwrap(), ret_t)
+        assert_eq!(*handle_query_by_rn_return(std::slice::from_ref(&ret_t), &original_t.rn).unwrap(), ret_t)
     }
 
     #[test]
