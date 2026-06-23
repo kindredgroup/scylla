@@ -13,8 +13,15 @@ PG_DATABASE=
 PG_POOL_SIZE=
 
 MONITOR_POLLING_INTERVAL_IN_SECS=
+MONITOR_METRICS_REFRESH_INTERVAL_IN_SECS=120
+MONITOR_METRICS_HOST=0.0.0.0
+MONITOR_METRICS_PORT=9464
+MONITOR_METRICS_PATH=/metrics
 MONITOR_TASK_RETENTION_PERIOD_IN_SECS=
 
 RUST_LOG=
 ```
 
+Metrics exposed by the monitor include:
+
+- `scylla_task_count{status="..."}` for the current number of tasks per status

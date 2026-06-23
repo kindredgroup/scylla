@@ -13,6 +13,7 @@ struct MockPgAdapter {
     update: fn(Task) -> Result<Task, PgAdapterError>,
     query: fn(&GetTaskModel) -> Result<Vec<Task>, PgAdapterError>,
     query_by_rn: fn(String) -> Result<Task, PgAdapterError>,
+    query_task_counts_by_status: fn() -> Result<Vec<(String, i64)>, PgAdapterError>,
     reset_batch: fn() -> Result<Vec<Task>, PgAdapterError>,
     lease_batch: fn(queue: String, limit: i32, worker: String, task_timeout_in_secs: i64) -> Result<Vec<Task>, PgAdapterError>,
     delete_batch: fn(retention_time_in_secs: i64) -> Result<u64, PgAdapterError>,
@@ -52,6 +53,7 @@ impl Default for MockPgAdapter {
             update: |_| unimplemented!(),
             query: |_| unimplemented!(),
             query_by_rn: |_| unimplemented!(),
+            query_task_counts_by_status: || unimplemented!(),
             lease_batch: |_, _, _, _| unimplemented!(),
             delete_batch: |_| unimplemented!(),
             reset_batch: || unimplemented!(),
@@ -76,6 +78,10 @@ impl Persistence for MockPgAdapter {
 
     async fn query_by_rn(&self, rn: String) -> Result<Task, Self::PersistenceError> {
         (self.query_by_rn)(rn)
+    }
+
+    async fn query_task_counts_by_status(&self) -> Result<Vec<(String, i64)>, Self::PersistenceError> {
+        (self.query_task_counts_by_status)()
     }
 
     async fn lease_batch(&self, queue: String, limit: i32, worker: String, task_timeout_in_secs: i64) -> Result<Vec<Task>, Self::PersistenceError> {
