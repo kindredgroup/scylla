@@ -103,7 +103,7 @@ impl DbExecute for PgAdapter {
                     );
                     if let Err(e) = tx.commit().await {
                         try_count += 1;
-                        log::error!("commit for tx failed : {}", e.to_string());
+                        log::error!("commit for tx failed : {}", e);
                     } else {
                         error = None;
                         break;
@@ -111,7 +111,7 @@ impl DbExecute for PgAdapter {
                 }
                 Err(e) => {
                     if let Err(err) = tx.rollback().await {
-                        log::error!("rollback for tx failed : {}", err.to_string());
+                        log::error!("rollback for tx failed : {}", err);
                     }
                     if try_count == max_tries {
                         error = Some(PgAdapterError::DbError(e));
