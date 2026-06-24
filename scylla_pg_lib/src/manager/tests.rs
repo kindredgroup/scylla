@@ -8,12 +8,14 @@ use super::PgManager;
 use async_trait::async_trait;
 use scylla_models::*;
 
+type TaskCountsByStatus = Vec<(String, i64)>;
+
 struct MockPgAdapter {
     insert: fn(Task) -> Result<Task, PgAdapterError>,
     update: fn(Task) -> Result<Task, PgAdapterError>,
     query: fn(&GetTaskModel) -> Result<Vec<Task>, PgAdapterError>,
     query_by_rn: fn(String) -> Result<Task, PgAdapterError>,
-    query_task_counts_by_status: fn() -> Result<Vec<(String, i64)>, PgAdapterError>,
+    query_task_counts_by_status: fn() -> Result<TaskCountsByStatus, PgAdapterError>,
     reset_batch: fn() -> Result<Vec<Task>, PgAdapterError>,
     lease_batch: fn(queue: String, limit: i32, worker: String, task_timeout_in_secs: i64) -> Result<Vec<Task>, PgAdapterError>,
     delete_batch: fn(retention_time_in_secs: i64) -> Result<u64, PgAdapterError>,
@@ -80,7 +82,7 @@ impl Persistence for MockPgAdapter {
         (self.query_by_rn)(rn)
     }
 
-    async fn query_task_counts_by_status(&self) -> Result<Vec<(String, i64)>, Self::PersistenceError> {
+    async fn query_task_counts_by_status(&self) -> Result<TaskCountsByStatus, Self::PersistenceError> {
         (self.query_task_counts_by_status)()
     }
 
