@@ -12,16 +12,20 @@ PG_PASSWORD=
 PG_DATABASE=
 PG_POOL_SIZE=
 
+OTEL_EXPORTER_OTLP_ENDPOINT=
 MONITOR_POLLING_INTERVAL_IN_SECS=
 MONITOR_METRICS_REFRESH_INTERVAL_IN_SECS=120
-MONITOR_METRICS_HOST=0.0.0.0
-MONITOR_METRICS_PORT=9464
-MONITOR_METRICS_PATH=/metrics
 MONITOR_TASK_RETENTION_PERIOD_IN_SECS=
 
 RUST_LOG=
 ```
 
-Metrics exposed by the monitor include:
+Metrics exported by the monitor include:
 
 - `scylla_task_count{status="..."}` for the current number of tasks per status
+
+The monitor now follows the Talos-style OpenTelemetry flow:
+
+- metrics are recorded through the OpenTelemetry metrics API
+- when `OTEL_EXPORTER_OTLP_ENDPOINT` is set, they are exported periodically over OTLP gRPC
+- when the endpoint is not set, metrics default to the noop provider

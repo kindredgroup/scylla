@@ -5,7 +5,7 @@ pub mod env;
 mod metrics;
 
 use crate::config::PGMonitorConfig;
-use crate::metrics::{serve_metrics, MetricsState};
+use crate::metrics::{init_otel_metrics, MetricsState};
 use scylla_pg_core::config::PGConfig;
 use scylla_pg_lib::manager::PgManager;
 use std::{io, sync::Arc, time::Duration};
@@ -15,15 +15,10 @@ use std::{io, sync::Arc, time::Duration};
 pub async fn monitor_tasks() {
     let pg_monitor_config = PGMonitorConfig::from_env();
     let pgm = Arc::new(PgManager::from_config(&PGConfig::from_env().unwrap()).expect("Error creating PgManager Instance"));
+    init_otel_metrics(pg_monitor_config.otel_grpc_endpoint.clone()).expect("Unable to initialise OTEL metrics exporter");
     let metrics_state = MetricsState::default();
 
     if let Err(e) = tokio::try_join!(
-        serve_metrics(
-            metrics_state.clone(),
-            pg_monitor_config.metrics_host.clone(),
-            pg_monitor_config.metrics_port,
-            pg_monitor_config.metrics_path.clone()
-        ),
         run_cleanup_loop(Arc::clone(&pgm), pg_monitor_config.poll_interval, pg_monitor_config.task_retention_time),
         refresh_task_count_metrics_loop(Arc::clone(&pgm), metrics_state, pg_monitor_config.metrics_refresh_interval)
     ) {

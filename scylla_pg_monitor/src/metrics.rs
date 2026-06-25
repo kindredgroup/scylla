@@ -1,93 +1,112 @@
-use std::{collections::BTreeMap, io, sync::Arc};
-
-use tokio::{
-    io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
-    net::TcpListener,
-    sync::RwLock,
+use std::{
+    collections::BTreeSet,
+    error::Error,
+    fmt::{self, Display, Formatter},
+    sync::Arc,
 };
 
-#[derive(Clone, Default)]
+use opentelemetry::{global, metrics::Gauge, KeyValue};
+use opentelemetry_otlp::WithExportConfig;
+use tokio::sync::RwLock;
+
+const METRIC_METER_NAME: &str = "scylla_pg_monitor";
+const TASK_COUNT_METRIC_NAME: &str = "scylla_task_count";
+const TASK_STATUS_LABEL: &str = "status";
+
+#[derive(Clone)]
 pub struct MetricsState {
-    task_counts: Arc<RwLock<BTreeMap<String, i64>>>,
+    task_counts: Gauge<i64>,
+    known_statuses: Arc<RwLock<BTreeSet<String>>>,
+}
+
+impl Default for MetricsState {
+    fn default() -> Self {
+        let task_counts = global::meter(METRIC_METER_NAME).i64_gauge(TASK_COUNT_METRIC_NAME).with_unit("tasks").build();
+
+        Self {
+            task_counts,
+            known_statuses: Arc::new(RwLock::new(BTreeSet::new())),
+        }
+    }
 }
 
 impl MetricsState {
     pub async fn update_task_counts(&self, counts: Vec<(String, i64)>) {
-        let mut task_counts = self.task_counts.write().await;
-        task_counts.clear();
-        task_counts.extend(counts);
-    }
+        let next_statuses: BTreeSet<_> = counts.iter().map(|(status, _)| status.clone()).collect();
+        let mut known_statuses = self.known_statuses.write().await;
 
-    pub async fn render(&self) -> String {
-        let task_counts = self.task_counts.read().await;
-        let mut output = String::from("# HELP scylla_task_count Number of tasks grouped by status.\n# TYPE scylla_task_count gauge\n");
-
-        for (status, count) in task_counts.iter() {
-            output.push_str(&format!("scylla_task_count{{status=\"{}\"}} {}\n", escape_label_value(status), count));
+        for status in known_statuses.difference(&next_statuses) {
+            self.record_task_count(status, 0);
         }
 
-        output
+        for (status, count) in counts {
+            self.record_task_count(&status, count);
+        }
+
+        *known_statuses = next_statuses;
+    }
+
+    fn record_task_count(&self, status: &str, count: i64) {
+        self.task_counts.record(count, &[KeyValue::new(TASK_STATUS_LABEL, status.to_string())]);
     }
 }
 
-pub async fn serve_metrics(state: MetricsState, host: String, port: u16, path: String) -> io::Result<()> {
-    let listener = TcpListener::bind((host.as_str(), port)).await?;
-    log::info!("serving metrics on http://{host}:{port}{path}");
+pub fn init_otel_metrics(grpc_endpoint: Option<String>) -> Result<(), OtelInitError> {
+    if let Some(grpc_endpoint) = grpc_endpoint {
+        let otel_exporter = opentelemetry_otlp::MetricExporter::builder()
+            .with_tonic()
+            .with_endpoint(grpc_endpoint)
+            .with_protocol(opentelemetry_otlp::Protocol::Grpc)
+            .build()
+            .map_err(|metric_error| OtelInitError {
+                kind: InitErrorType::MetricError,
+                reason: "Unable to initialise metrics exporter".into(),
+                cause: Some(format!("{metric_error:?}")),
+            })?;
 
-    loop {
-        let (mut socket, _) = listener.accept().await?;
-        let state_clone = state.clone();
-        let path_clone = path.clone();
-        tokio::spawn(async move {
-            if let Err(e) = handle_connection(&mut socket, state_clone, &path_clone).await {
-                log::error!("error serving metrics request {e}");
-            }
-        });
-    }
-}
+        let provider = opentelemetry_sdk::metrics::SdkMeterProvider::builder()
+            .with_periodic_exporter(otel_exporter)
+            .build();
 
-async fn handle_connection<S>(socket: &mut S, state: MetricsState, metrics_path: &str) -> io::Result<()>
-where
-    S: AsyncRead + AsyncWrite + Unpin,
-{
-    let mut buffer = [0_u8; 1024];
-    let bytes_read = socket.read(&mut buffer).await?;
-    if bytes_read == 0 {
-        return Ok(());
-    }
-
-    let request = String::from_utf8_lossy(&buffer[..bytes_read]);
-    let first_line = request.lines().next().unwrap_or_default();
-
-    let (status_line, content_type, body) = match parse_request_path(first_line) {
-        Some(path) if path == metrics_path => ("HTTP/1.1 200 OK", "text/plain; version=0.0.4; charset=utf-8", state.render().await),
-        Some(_) => ("HTTP/1.1 404 Not Found", "text/plain; charset=utf-8", "not found\n".to_string()),
-        None => ("HTTP/1.1 400 Bad Request", "text/plain; charset=utf-8", "bad request\n".to_string()),
-    };
-
-    let response = format!(
-        "{status_line}\r\ncontent-type: {content_type}\r\ncontent-length: {}\r\nconnection: close\r\n\r\n{body}",
-        body.len()
-    );
-    socket.write_all(response.as_bytes()).await?;
-    socket.shutdown().await
-}
-
-fn parse_request_path(request_line: &str) -> Option<&str> {
-    let mut parts = request_line.split_whitespace();
-    let method = parts.next()?;
-    let path = parts.next()?;
-    let _http_version = parts.next()?;
-
-    if method == "GET" {
-        Some(path)
+        log::info!("OTEL metrics provider initialised with endpoint");
+        global::set_meter_provider(provider);
     } else {
-        None
+        log::info!("No OTEL endpoint provided, metrics will default to NoopMeterProvider");
+    }
+
+    Ok(())
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OtelInitError {
+    pub kind: InitErrorType,
+    pub reason: String,
+    pub cause: Option<String>,
+}
+
+impl Display for OtelInitError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Error initialising OTEL telemetry: '{}'. Reason: {} Cause: {:?}",
+            self.kind, self.reason, self.cause
+        )
     }
 }
 
-fn escape_label_value(input: &str) -> String {
-    input.replace('\\', "\\\\").replace('"', "\\\"")
+impl Error for OtelInitError {}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum InitErrorType {
+    MetricError,
+}
+
+impl Display for InitErrorType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MetricError => write!(f, "MetricError"),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -95,19 +114,28 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn render_prometheus_task_count_metrics() {
+    async fn tracks_known_statuses_after_updates() {
         let state = MetricsState::default();
         state.update_task_counts(vec![("ready".to_string(), 3), ("running".to_string(), 1)]).await;
 
-        let output = state.render().await;
-        assert!(output.contains("scylla_task_count{status=\"ready\"} 3"));
-        assert!(output.contains("scylla_task_count{status=\"running\"} 1"));
+        let known_statuses = state.known_statuses.read().await;
+        assert!(known_statuses.contains("ready"));
+        assert!(known_statuses.contains("running"));
+    }
+
+    #[tokio::test]
+    async fn removes_stale_statuses_from_tracking() {
+        let state = MetricsState::default();
+        state.update_task_counts(vec![("ready".to_string(), 3), ("running".to_string(), 1)]).await;
+        state.update_task_counts(vec![("ready".to_string(), 5)]).await;
+
+        let known_statuses = state.known_statuses.read().await;
+        assert!(known_statuses.contains("ready"));
+        assert!(!known_statuses.contains("running"));
     }
 
     #[test]
-    fn parse_metrics_request_path() {
-        assert_eq!(parse_request_path("GET /metrics HTTP/1.1"), Some("/metrics"));
-        assert_eq!(parse_request_path("POST /metrics HTTP/1.1"), None);
-        assert_eq!(parse_request_path("not-a-request"), None);
+    fn initialises_noop_metrics_without_endpoint() {
+        init_otel_metrics(None).expect("otel metrics should allow a missing endpoint");
     }
 }
