@@ -24,7 +24,7 @@ Metrics exported by the monitor include:
 
 - `scylla_task_count{status="..."}` for the current number of tasks per status
 
-The monitor now follows the Talos-style OpenTelemetry flow:
+The monitor flow:
 
 - metrics are recorded through the OpenTelemetry metrics API
 - when `OTEL_EXPORTER_OTLP_ENDPOINT` is set, they are exported periodically over OTLP gRPC

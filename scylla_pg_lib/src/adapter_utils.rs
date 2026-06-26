@@ -1,5 +1,7 @@
+use std::collections::HashSet;
+
 use crate::error::PgAdapterError;
-use scylla_models::{GetTaskModel, Task};
+use scylla_models::{GetTaskModel, Task, TaskBatch};
 use serde_json::to_value;
 
 /// # Panics
@@ -18,6 +20,27 @@ pub fn handle_insert_return<'a>(tasks: &'a [Task], original_task: &Task) -> Resu
         _ => panic!("Unexpected number of rows returned from insert query"),
     }
 }
+
+/// # Panics
+/// In case a task cannot be converted to `serde_json::Value`
+pub fn prepare_batch_insert_tasks(tasks: &[Task]) -> Vec<serde_json::Value> {
+    tasks.iter().map(prepare_insert_task).collect()
+}
+pub fn handle_batch_insert_tasks_return(tasks: &[Task], original_tasks: &[Task]) -> TaskBatch {
+    TaskBatch {
+        inserted: tasks.to_vec(),
+        failed_to_insert: if tasks.len() == original_tasks.len() {
+            Vec::new()
+        } else {
+            let tasks_map: HashSet<String> = tasks.iter().map(|task| task.rn.clone()).collect();
+            original_tasks
+                .iter()
+                .filter_map(|task| if tasks_map.contains(&task.rn) { None } else { Some(task.clone()) })
+                .collect()
+        },
+    }
+}
+
 #[derive(PartialEq, Eq, Debug)]
 pub struct UpdateParams {
     pub json_task: serde_json::Value,
@@ -82,6 +105,23 @@ mod tests {
     }
 
     #[test]
+    fn prepare_batch_insert_tasks_cases() {
+        let t1 = Task {
+            rn: "123".to_string(),
+            ..Task::default()
+        };
+        let t2 = Task {
+            rn: "456".to_string(),
+            ..Task::default()
+        };
+        let ts: Vec<Task> = vec![t1.clone(), t2.clone()];
+        assert_eq!(
+            prepare_batch_insert_tasks(&ts),
+            vec![serde_json::to_value(&t1).unwrap(), serde_json::to_value(&t2).unwrap()]
+        );
+    }
+
+    #[test]
     fn handle_insert_return_cases() {
         let original_task = Task {
             rn: "123".to_string(),
@@ -99,7 +139,7 @@ mod tests {
             ..Task::default()
         };
         // In case single item is returned from db. That will be retruned back
-        assert_eq!(*handle_insert_return(&[ret_t.clone()], &original_task).unwrap(), ret_t);
+        assert_eq!(*handle_insert_return(std::slice::from_ref(&ret_t), &original_task).unwrap(), ret_t);
     }
 
     #[test]
@@ -120,6 +160,51 @@ mod tests {
             ..Task::default()
         };
         handle_insert_return(&vec![ret_t, ret_t1], &original_task).unwrap();
+    }
+
+    #[test]
+    fn handle_batch_insert_tasks_return_cases() {
+        let tasks: Vec<Task> = vec![
+            Task {
+                rn: "123".to_string(),
+                ..Task::default()
+            },
+            Task {
+                rn: "456".to_string(),
+                ..Task::default()
+            },
+            Task {
+                rn: "789".to_string(),
+                ..Task::default()
+            },
+        ];
+
+        // All tasks are missing.
+        assert_eq!(
+            handle_batch_insert_tasks_return(&[], &tasks),
+            TaskBatch {
+                inserted: Vec::new(),
+                failed_to_insert: tasks.clone(),
+            }
+        );
+
+        // Some tasks are missing.
+        assert_eq!(
+            handle_batch_insert_tasks_return(&[tasks[0].clone(), tasks[2].clone()], &tasks),
+            TaskBatch {
+                inserted: vec![tasks[0].clone(), tasks[2].clone()],
+                failed_to_insert: vec![tasks[1].clone()],
+            }
+        );
+
+        // All tasks are present.
+        assert_eq!(
+            handle_batch_insert_tasks_return(&tasks, &tasks),
+            TaskBatch {
+                inserted: tasks.clone(),
+                failed_to_insert: Vec::new(),
+            }
+        );
     }
 
     #[test]
@@ -152,7 +237,7 @@ mod tests {
             status: TaskStatus::Running,
             ..Task::default()
         };
-        assert_eq!(*handle_update_return(&[ret_t.clone()], &original_t).unwrap(), ret_t)
+        assert_eq!(*handle_update_return(std::slice::from_ref(&ret_t), &original_t).unwrap(), ret_t)
     }
 
     #[test]
@@ -225,7 +310,7 @@ mod tests {
             status: TaskStatus::Running,
             ..Task::default()
         };
-        assert_eq!(*handle_query_by_rn_return(&[ret_t.clone()], &original_t.rn).unwrap(), ret_t)
+        assert_eq!(*handle_query_by_rn_return(std::slice::from_ref(&ret_t), &original_t.rn).unwrap(), ret_t)
     }
 
     #[test]

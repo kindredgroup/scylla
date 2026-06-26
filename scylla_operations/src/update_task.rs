@@ -197,7 +197,6 @@ fn prepare_reset_task(mut task: Task) -> Task {
 /// See `unit tests` for more examples
 ///  # Errors
 /// Returns `ScyllaOperationsError` in case of invalid data.
-
 pub fn request_handler(task: Task, update_task_model: &UpdateTaskModel) -> Result<Task, ScyllaOperationsError> {
     match update_task_model.operation {
         UpdateOperation::Status => {

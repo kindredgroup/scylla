@@ -24,6 +24,87 @@ fn insert_returns_task() {
     assert_eq!(&returned_task.owner, &default_task.owner);
     assert_eq!(&returned_task.status, &default_task.status);
 }
+
+#[test]
+fn add_task_operations() {
+    let add_task_models = vec![
+        AddTaskModel {
+            rn: "123".to_string(),
+            priority: 1,
+            queue: "aa".to_string(),
+            spec: serde_json::Value::default(),
+        },
+        AddTaskModel {
+            rn: "456".to_string(),
+            priority: 2,
+            queue: "bb".to_string(),
+            spec: serde_json::Value::default(),
+        },
+    ];
+    let default_task: Task = Task::default();
+    let returned_tasks = ScyllaOperations::add_task_operations(&add_task_models);
+    // first task
+    assert_eq!(&returned_tasks[0].rn, &add_task_models[0].rn);
+    assert_eq!(&returned_tasks[0].priority, &add_task_models[0].priority);
+    assert_eq!(&returned_tasks[0].queue, &add_task_models[0].queue);
+    assert_eq!(&returned_tasks[0].spec, &add_task_models[0].spec);
+    assert_eq!(&returned_tasks[0].progress, &default_task.progress);
+    assert_eq!(&returned_tasks[0].errors, &default_task.errors);
+    assert_eq!(&returned_tasks[0].history, &default_task.history);
+    assert_eq!(&returned_tasks[0].owner, &default_task.owner);
+    assert_eq!(&returned_tasks[0].status, &default_task.status);
+    // second task
+    assert_eq!(&returned_tasks[1].rn, &add_task_models[1].rn);
+    assert_eq!(&returned_tasks[1].priority, &add_task_models[1].priority);
+    assert_eq!(&returned_tasks[1].queue, &add_task_models[1].queue);
+    assert_eq!(&returned_tasks[1].spec, &add_task_models[1].spec);
+    assert_eq!(&returned_tasks[1].progress, &default_task.progress);
+    assert_eq!(&returned_tasks[1].errors, &default_task.errors);
+    assert_eq!(&returned_tasks[1].history, &default_task.history);
+    assert_eq!(&returned_tasks[1].owner, &default_task.owner);
+}
+
+#[test]
+fn add_task_operations_dedupes_and_sorts_by_rn() {
+    let add_task_models = vec![
+        AddTaskModel {
+            rn: "456".to_string(),
+            priority: 2,
+            queue: "bb".to_string(),
+            spec: serde_json::Value::default(),
+        },
+        AddTaskModel {
+            rn: "123".to_string(),
+            priority: 9,
+            queue: "duplicate".to_string(),
+            spec: serde_json::json!({"dup": true}),
+        },
+        AddTaskModel {
+            rn: "001".to_string(),
+            priority: 3,
+            queue: "ab".to_string(),
+            spec: serde_json::Value::default(),
+        },
+        AddTaskModel {
+            rn: "123".to_string(),
+            priority: 1,
+            queue: "aa".to_string(),
+            spec: serde_json::Value::default(),
+        },
+    ];
+    let returned_tasks = ScyllaOperations::add_task_operations(&add_task_models);
+    assert_eq!(returned_tasks.len(), 3);
+    assert_eq!(returned_tasks[0].rn, "001");
+    assert_eq!(returned_tasks[0].priority, 3);
+    assert_eq!(returned_tasks[0].queue, "ab");
+    assert_eq!(returned_tasks[1].rn, "123");
+    assert_eq!(returned_tasks[1].priority, 9);
+    assert_eq!(returned_tasks[1].queue, "duplicate");
+    assert_eq!(returned_tasks[2].rn, "456");
+    assert_eq!(returned_tasks[2].priority, 2);
+    assert_eq!(returned_tasks[2].queue, "bb");
+}
+
 #[test]
 fn update_task_calls_get_and_update() {
     let utm = UpdateTaskModel {
