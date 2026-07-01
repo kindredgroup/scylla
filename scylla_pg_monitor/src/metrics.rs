@@ -1,7 +1,5 @@
 use std::{
     collections::BTreeSet,
-    error::Error,
-    fmt::{self, Display, Formatter},
     sync::Arc,
 };
 
@@ -10,7 +8,7 @@ use opentelemetry_otlp::WithExportConfig;
 use tokio::sync::RwLock;
 
 const METRIC_METER_NAME: &str = "scylla_pg_monitor";
-const TASK_COUNT_METRIC_NAME: &str = "scylla_task_count";
+const TASK_COUNT_METRIC_NAME: &str = "scylla_tasks";
 const TASK_STATUS_LABEL: &str = "status";
 
 #[derive(Clone)]
@@ -51,62 +49,54 @@ impl MetricsState {
     }
 }
 
-pub fn init_otel_metrics(grpc_endpoint: Option<String>) -> Result<(), OtelInitError> {
-    if let Some(grpc_endpoint) = grpc_endpoint {
-        let otel_exporter = opentelemetry_otlp::MetricExporter::builder()
-            .with_tonic()
-            .with_endpoint(grpc_endpoint)
-            .with_protocol(opentelemetry_otlp::Protocol::Grpc)
-            .build()
-            .map_err(|metric_error| OtelInitError {
-                kind: InitErrorType::MetricError,
-                reason: "Unable to initialise metrics exporter".into(),
-                cause: Some(format!("{metric_error:?}")),
-            })?;
+fn is_valid_otel_grpc_endpoint(endpoint: &str) -> bool {
+    let rest = endpoint
+        .strip_prefix("http://")
+        .or_else(|| endpoint.strip_prefix("https://"));
 
-        let provider = opentelemetry_sdk::metrics::SdkMeterProvider::builder()
-            .with_periodic_exporter(otel_exporter)
-            .build();
+    rest.is_some_and(|host| !host.is_empty())
+}
 
-        log::info!("OTEL metrics provider initialised with endpoint");
-        global::set_meter_provider(provider);
-    } else {
+pub fn init_otel_metrics(grpc_endpoint: Option<String>) {
+    let Some(raw_endpoint) = grpc_endpoint else {
         log::info!("No OTEL endpoint provided, metrics will default to NoopMeterProvider");
+        return;
+    };
+
+    if raw_endpoint.trim().is_empty() {
+        log::error!("OTEL_EXPORTER_OTLP_ENDPOINT is set but empty; metrics will default to NoopMeterProvider");
+        return;
     }
 
-    Ok(())
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct OtelInitError {
-    pub kind: InitErrorType,
-    pub reason: String,
-    pub cause: Option<String>,
-}
-
-impl Display for OtelInitError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "Error initialising OTEL telemetry: '{}'. Reason: {} Cause: {:?}",
-            self.kind, self.reason, self.cause
-        )
+    let endpoint = raw_endpoint.trim().to_string();
+    if !is_valid_otel_grpc_endpoint(&endpoint) {
+        log::error!(
+            "OTEL_EXPORTER_OTLP_ENDPOINT is invalid ({endpoint:?}); expected an http:// or https:// URL; metrics will default to NoopMeterProvider"
+        );
+        return;
     }
-}
 
-impl Error for OtelInitError {}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum InitErrorType {
-    MetricError,
-}
-
-impl Display for InitErrorType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::MetricError => write!(f, "MetricError"),
+    let otel_exporter = match opentelemetry_otlp::MetricExporter::builder()
+        .with_tonic()
+        .with_endpoint(endpoint.clone())
+        .with_protocol(opentelemetry_otlp::Protocol::Grpc)
+        .build()
+    {
+        Ok(exporter) => exporter,
+        Err(metric_error) => {
+            log::error!(
+                "Unable to initialise OTEL metrics exporter for endpoint {endpoint:?}: {metric_error:?}; metrics will default to NoopMeterProvider"
+            );
+            return;
         }
-    }
+    };
+
+    let provider = opentelemetry_sdk::metrics::SdkMeterProvider::builder()
+        .with_periodic_exporter(otel_exporter)
+        .build();
+
+    log::info!("OTEL metrics provider initialised with endpoint {endpoint:?}");
+    global::set_meter_provider(provider);
 }
 
 #[cfg(test)]
@@ -136,6 +126,28 @@ mod tests {
 
     #[test]
     fn initialises_noop_metrics_without_endpoint() {
-        init_otel_metrics(None).expect("otel metrics should allow a missing endpoint");
+        init_otel_metrics(None);
+    }
+
+    #[test]
+    fn initialises_noop_metrics_with_empty_endpoint() {
+        init_otel_metrics(Some(String::new()));
+        init_otel_metrics(Some("   ".to_string()));
+    }
+
+    #[test]
+    fn initialises_noop_metrics_with_invalid_endpoint() {
+        init_otel_metrics(Some("not-a-url".to_string()));
+        init_otel_metrics(Some("http://".to_string()));
+    }
+
+    #[test]
+    fn validates_otel_grpc_endpoint() {
+        assert!(is_valid_otel_grpc_endpoint("http://localhost:4317"));
+        assert!(is_valid_otel_grpc_endpoint("https://collector.example.com:4317"));
+        assert!(!is_valid_otel_grpc_endpoint(""));
+        assert!(!is_valid_otel_grpc_endpoint("http://"));
+        assert!(!is_valid_otel_grpc_endpoint("ftp://localhost:4317"));
+        assert!(!is_valid_otel_grpc_endpoint("localhost:4317"));
     }
 }

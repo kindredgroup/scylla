@@ -12,9 +12,7 @@ impl PGMonitorConfig {
     pub fn from_env() -> Self {
         Self {
             otel_grpc_endpoint: env_var_with_defaults!("OTEL_EXPORTER_OTLP_ENDPOINT", Option::<String>),
-            poll_interval: env_var!("MONITOR_POLLING_INTERVAL_IN_SECS")
-                .parse()
-                .expect("u64 expected for MONITOR_POLLING_INTERVAL_IN_SECS"),
+            poll_interval: env_var_with_defaults!("MONITOR_POLLING_INTERVAL_IN_SECS", u64, 5),
             metrics_refresh_interval: env_var_with_defaults!("MONITOR_METRICS_REFRESH_INTERVAL_IN_SECS", u64, 120),
             task_retention_time: env_var!("MONITOR_TASK_RETENTION_PERIOD_IN_SECS")
                 .parse()
@@ -68,15 +66,14 @@ mod tests {
     #[test]
     #[serial]
     fn check_from_env_uses_defaults() {
-        set_env_var("MONITOR_POLLING_INTERVAL_IN_SECS", "10");
         set_env_var("MONITOR_TASK_RETENTION_PERIOD_IN_SECS", "8600");
 
         let config = PGMonitorConfig::from_env();
         assert_eq!(config.otel_grpc_endpoint, None);
+        assert_eq!(config.poll_interval, 5);
         assert_eq!(config.metrics_refresh_interval, 120);
         assert_eq!(config.task_retention_time, 8600);
 
-        unset_env_var("MONITOR_POLLING_INTERVAL_IN_SECS");
         unset_env_var("MONITOR_TASK_RETENTION_PERIOD_IN_SECS");
     }
 }

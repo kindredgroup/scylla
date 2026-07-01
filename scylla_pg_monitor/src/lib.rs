@@ -15,7 +15,7 @@ use std::{io, sync::Arc, time::Duration};
 pub async fn monitor_tasks() {
     let pg_monitor_config = PGMonitorConfig::from_env();
     let pgm = Arc::new(PgManager::from_config(&PGConfig::from_env().unwrap()).expect("Error creating PgManager Instance"));
-    init_otel_metrics(pg_monitor_config.otel_grpc_endpoint.clone()).expect("Unable to initialise OTEL metrics exporter");
+    init_otel_metrics(pg_monitor_config.otel_grpc_endpoint.clone());
     let metrics_state = MetricsState::default();
 
     if let Err(e) = tokio::try_join!(
