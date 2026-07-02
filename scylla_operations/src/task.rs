@@ -45,6 +45,7 @@ where
     async fn update(&self, task: Task) -> Result<Task, Self::PersistenceError>;
     async fn query(&self, get_task_model: &GetTaskModel) -> Result<Vec<Task>, Self::PersistenceError>;
     async fn query_by_rn(&self, rn: String) -> Result<Task, Self::PersistenceError>;
+    async fn query_task_counts_by_status(&self) -> Result<Vec<(String, i64)>, Self::PersistenceError>;
     async fn reset_batch(&self) -> Result<Vec<Task>, Self::PersistenceError>;
 
     async fn lease_batch(&self, queue: String, limit: i32, worker: String, task_timeout_in_secs: i64) -> Result<Vec<Task>, Self::PersistenceError>;
