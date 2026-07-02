@@ -19,7 +19,7 @@ pub struct MetricsState {
 
 impl Default for MetricsState {
     fn default() -> Self {
-        let task_counts = global::meter(METRIC_METER_NAME).i64_gauge(TASK_COUNT_METRIC_NAME).with_unit("tasks").build();
+        let task_counts = global::meter(METRIC_METER_NAME).i64_gauge(TASK_COUNT_METRIC_NAME).with_unit("1").build();
 
         Self {
             task_counts,
