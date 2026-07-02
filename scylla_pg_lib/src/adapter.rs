@@ -46,6 +46,12 @@ const GET_TASK_SQL: &str = "
         Select data::JSONB from task \
         where data ->> 'rn' = $1 \
       ";
+const GET_TASK_COUNTS_BY_STATUS_SQL: &str = "
+    SELECT data ->> 'status' AS status, COUNT(*)::BIGINT AS count
+    FROM task
+    GROUP BY data ->> 'status'
+    ORDER BY status
+";
 const LEASE_N_TASK_SQL: &str = "
     UPDATE task t SET data = jsonb_set(jsonb_set(jsonb_set(jsonb_set( \
             jsonb_set(t.data, '{status}', '\"running\"'), \
@@ -198,6 +204,26 @@ impl Persistence for PgAdapter {
         let execute_resp = &self.execute(GET_TASK_SQL, &[&rn], IsolationLevel::RepeatableRead).await?;
         let t = handle_query_by_rn_return(execute_resp, &rn)?;
         Ok(t.clone())
+    }
+
+    async fn query_task_counts_by_status(&self) -> Result<Vec<(String, i64)>, Self::PersistenceError> {
+        let mut client: Client = self.pool.get().await?;
+        let stmt = client.prepare_cached(GET_TASK_COUNTS_BY_STATUS_SQL).await?;
+        let tx = client.build_transaction().isolation_level(IsolationLevel::RepeatableRead).start().await?;
+
+        match tx.query(&stmt, &[]).await {
+            Ok(rows) => {
+                let counts = rows.into_iter().map(|row| (row.get::<_, String>(0), row.get::<_, i64>(1))).collect();
+                tx.commit().await?;
+                Ok(counts)
+            }
+            Err(e) => {
+                if let Err(rollback_err) = tx.rollback().await {
+                    log::error!("rollback for tx failed: {}", rollback_err);
+                }
+                Err(PgAdapterError::DbError(e))
+            }
+        }
     }
 
     async fn lease_batch(&self, queue: String, limit: i32, worker: String, task_timeout_in_secs: i64) -> Result<Vec<Task>, Self::PersistenceError> {

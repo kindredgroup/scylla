@@ -28,6 +28,13 @@ impl PgManager {
     pub async fn fetch_task(&self, rn: String) -> Result<Task, PgAdapterError> {
         self.pg_adapter.query_by_rn(rn).await
     }
+
+    /// # Errors
+    /// Returns `PgAdapterError`
+    pub async fn fetch_task_counts_by_status(&self) -> Result<Vec<(String, i64)>, PgAdapterError> {
+        self.pg_adapter.query_task_counts_by_status().await
+    }
+
     /// # Errors
     /// Returns `PgAdapterError`
     pub async fn insert_task(&self, atm: AddTaskModel) -> Result<Task, PgAdapterError> {
