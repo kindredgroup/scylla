@@ -1,5 +1,5 @@
 {
-  "name": "scylla_pg_js-darwin-arm64",
+  "name": "@kindredgroup/scylla_pg_js-darwin-arm64",
   "version": "0.0.0",
   "os": [
     "darwin"
@@ -14,5 +14,12 @@
   "license": "MIT",
   "engines": {
     "node": ">= 10"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kindredgroup/scylla.git"
   }
 }

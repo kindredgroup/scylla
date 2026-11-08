@@ -17,7 +17,7 @@ Scylla (a legendary sea monster with many tentacles) is a **standalone, general-
 
 ## Links
 
-- [Scylla_Pg_Client](https://www.npmjs.com/package/scylla_pg_client)
+- [Scylla_Pg_Client](https://github.com/kindredgroup/scylla/pkgs/npm/scylla_pg_client)
 - [Scylla_Pg_Monitor Docker Image](https://github.com/kindredgroup/scylla/pkgs/container/scylla%2Fscylla_pg_monitor)
 - [Scylla_Pg_Monitor Migration Docker Image](https://github.com/kindredgroup/scylla/pkgs/container/scylla%2Fscylla_pg_migration)
 

@@ -1,5 +1,5 @@
 {
-  "name": "scylla_pg_js-linux-arm64-musl",
+  "name": "@kindredgroup/scylla_pg_js-linux-arm64-musl",
   "version": "0.0.0",
   "os": [
     "linux"
@@ -17,5 +17,12 @@
   },
   "libc": [
     "musl"
-  ]
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kindredgroup/scylla.git"
+  }
 }

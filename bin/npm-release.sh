@@ -15,13 +15,14 @@ set_version() {
 
 
 
-# update versions for multiple arch
+# Publish to GitHub Packages npm registry.
+# Auth comes from actions/setup-node (registry-url) + NODE_AUTH_TOKEN=GITHUB_TOKEN
+# (same pattern as talos/.github/workflows/publish.yml).
 release_package() {
   package_name=$1
   cd $package_name
 #  npm prepublishOnly
-  echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-  npm publish
+  npm publish --foreground-scripts
 }
 
 
@@ -41,12 +42,10 @@ cd $current_directory
 set_version ./scylla_pg_client/
 echo " curent: $PWD"
 
-npm --prefix ./scylla_pg_client/ pkg set dependencies.scylla_pg_js=$cargo_version
-npm --prefix ./scylla_pg_client/ install
+# Install the just-published scoped package from GitHub Packages (talos pattern)
+rm -f ./scylla_pg_client/package-lock.json
+npm --prefix ./scylla_pg_client/ install "@kindredgroup/scylla_pg_js@$cargo_version" --foreground-scripts
+npm --prefix ./scylla_pg_client/ pkg set version=$cargo_version
 npm --prefix ./scylla_pg_client/ run build
 
 release_package scylla_pg_client
-
-
-
-
