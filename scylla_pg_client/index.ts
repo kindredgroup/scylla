@@ -1,4 +1,4 @@
-import {JsAddTaskModel, JsDbConfig, JsGetTasksModel, ScyllaManager} from "scylla_pg_js";
+import {JsAddTaskModel, JsDbConfig, JsGetTasksModel, ScyllaManager} from "@kindredgroup/scylla_pg_js";
 
 
 export enum TaskStatus {
