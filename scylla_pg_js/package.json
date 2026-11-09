@@ -1,6 +1,6 @@
 {
   "name": "@kindredgroup/scylla_pg_js",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "main": "index.js",
   "types": "index.d.ts",
   "repository": {
@@ -45,12 +45,12 @@
   },
   "packageManager": "yarn@3.3.1",
   "optionalDependencies": {
-    "@kindredgroup/scylla_pg_js-win32-x64-msvc": "0.2.3",
-    "@kindredgroup/scylla_pg_js-darwin-x64": "0.2.3",
-    "@kindredgroup/scylla_pg_js-linux-x64-gnu": "0.2.3",
-    "@kindredgroup/scylla_pg_js-linux-x64-musl": "0.2.3",
-    "@kindredgroup/scylla_pg_js-linux-arm64-musl": "0.2.3",
-    "@kindredgroup/scylla_pg_js-darwin-arm64": "0.2.3",
-    "@kindredgroup/scylla_pg_js-darwin-universal": "0.2.3"
+    "@kindredgroup/scylla_pg_js-win32-x64-msvc": "0.2.4",
+    "@kindredgroup/scylla_pg_js-darwin-x64": "0.2.4",
+    "@kindredgroup/scylla_pg_js-linux-x64-gnu": "0.2.4",
+    "@kindredgroup/scylla_pg_js-linux-x64-musl": "0.2.4",
+    "@kindredgroup/scylla_pg_js-linux-arm64-musl": "0.2.4",
+    "@kindredgroup/scylla_pg_js-darwin-arm64": "0.2.4",
+    "@kindredgroup/scylla_pg_js-darwin-universal": "0.2.4"
   }
 }
