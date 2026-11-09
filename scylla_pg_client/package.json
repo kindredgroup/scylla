@@ -1,5 +1,5 @@
 {
-  "name": "scylla_pg_client",
+  "name": "@kindredgroup/scylla_pg_client",
   "version": "0.2.1",
   "description": "Scylla task scheduler, javascript binding.for postgres",
   "engines": {
@@ -10,11 +10,14 @@
     "type": "git",
     "url": "https://github.com/kindredgroup/scylla.git"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "author": "Anil Sharma",
   "email": "asharmaanil@gmail.com",
   "license": "MIT",
   "dependencies": {
-    "scylla_pg_js": "0.2.1"
+    "@kindredgroup/scylla_pg_js": "0.2.1"
   },
   "devDependencies": {
     "@ava/typescript": "^4.1.0",
