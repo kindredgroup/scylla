@@ -41,7 +41,7 @@
     "test": "ava",
     "universal": "napi universal",
     "version": "napi version",
-    "prepublishOnly": "napi prepublish -t npm --no-gh-release && esbuild --minify --outfile=index.js --allow-overwrite index.js"
+    "prepublishOnly": "napi prepublish -t npm --skip-gh-release && esbuild --minify --outfile=index.js --allow-overwrite index.js"
   },
   "packageManager": "yarn@3.3.1",
   "optionalDependencies": {
