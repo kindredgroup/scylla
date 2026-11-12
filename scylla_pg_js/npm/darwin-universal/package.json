@@ -1,6 +1,6 @@
 {
   "name": "@kindredgroup/scylla_pg_js-darwin-universal",
-  "version": "0.0.0",
+  "version": "0.2.5",
   "os": [
     "darwin"
   ],
